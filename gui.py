@@ -1,11 +1,41 @@
+import time
+import math
+from threading import * 
 from PIL import Image
 import customtkinter as ctk
+import pygame
+
 
 class FrameBuilder(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
+pygame.mixer.init()
+list_of_songs = []
+n=0
+
+def progress():
+    a = pygame.mixer.Sound(f"{list_of_songs[n]}")
+    song_len = a.get_length() * 3
+    for i in range(0, math.ceil(song_len)):
+        time.sleep(.3)
+
+
 class App(ctk.CTk):
+    
+    def threading():
+        t1 = Thread(target=progress)
+
+    def play_music():
+        pass
+    def skip_forward():
+        pass
+
+    def skip_backwards():
+        pass
+
+    def volume(value):
+        pygame.mixer.music.set_volume(value)
 
     def __init__(self):
         super().__init__()
@@ -18,6 +48,24 @@ class App(ctk.CTk):
         self.my_music_frame()
         self.my_music_songs()
         self.menu_frame_method()
+
+    def play_bar(self):
+        self.play_button = ctk.CTkButton(self, command=self.play_music)
+        self.play_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
+                                       text="Play", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        
+        self.skip_f_button = ctk.CTkButton(self, command=self.skip_forward)
+        self.skip_f_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
+                                       text=">", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        
+        self.skip_b_button = ctk.CTkButton(self, command=self.skip_backwards)
+        self.skip_b_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
+                                       text="<", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+
+        self.slider = ctk.CTkSlider(self, from_= 0, to=1, command=self.volume)
+        self.slider.configure()
+
+        self.progress = ctk.CTkProgressBar(self)
 
     def search_frame_method(self):
         self.search_frame = FrameBuilder(self)
@@ -240,6 +288,7 @@ class App(ctk.CTk):
                 text="Settings", text_color="#ffffff",  font=("Segoe UI", 30, "bold"),  fg_color="#1b1b1b")
         self.settings_label.grid(
                 row=0, column=3, padx=(10, 820), pady=(10, 720))
+
 
 app = App()
 app.mainloop()
