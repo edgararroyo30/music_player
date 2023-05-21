@@ -3,8 +3,16 @@ import math
 from threading import Thread
 from PIL import Image
 import customtkinter as ctk
+from tkinter import filedialog
+import tkinter as tk
 import pygame
+import os
 
+n=0
+
+list_of_songs = []
+currrent_song = ""
+paused = False
 
 class FrameBuilder(ctk.CTkFrame):
     def __init__(self, master):
@@ -16,9 +24,7 @@ class FrameBuilder(ctk.CTkFrame):
 
 
 class App(ctk.CTk):
-    n=0
 
-    list_of_songs = ["./music/dispara.mp3"]
 
     def __init__(self):
         super().__init__()
@@ -33,9 +39,26 @@ class App(ctk.CTk):
         self.my_music_frame()
         self.my_music_songs()
         self.menu_frame_method()
+    
+
+    def load_music(self):
+        global current_song
+        
+        self.directory = filedialog.askdirectory()
+
+        for song in os.listdir(self.directory):
+            name, ext = os.path.splitext(song)
+            if ext == '.mp3':
+                list_of_songs.append(song)
+
+        for song in list_of_songs:
+            self.song_list.insert("end", song)
+
+        self.song_list.selection_set(0)
+        current_song = list_of_songs[self.song_list.curselection()[0]]
 
     def get_song_name(self, song_name):
-        stripped_string = song_name[8:-4]
+        stripped_string = song_name[:-4]
         self.song_name_label = ctk.CTkLabel(self, text=stripped_string.title(), text_color="#ffffff",  font=("Segoe UI", 20, "bold"))
         self.song_name_label.grid(row=0, column=0, padx=(10, 10), pady=(720, 10))
     
@@ -44,30 +67,52 @@ class App(ctk.CTk):
         t1.start()
 
     def play_music(self):
-        self.threading()
-        n = self.n
-        current_song = n
-        if n > 2:
-            n = 0
-        song_name = self.list_of_songs[n]
-        pygame.mixer.music.load(song_name)
-        pygame.mixer.music.play(loops=0)
-        pygame.mixer.music.set_volume(.5)    
-        self.get_song_name(song_name)
+        global current_song, paused
+        
+        if not paused:
+            self.threading()
+            pygame.mixer.music.load(os.path.join(self.directory, current_song))
+            pygame.mixer.music.play(loops=0)
+            pygame.mixer.music.set_volume(.5)   
+            self.get_song_name(current_song)
+        else:
+            pygame.mixer.music.unpause()
+            paused = False
+
+    def pause_music(self):
+        global paused
+        pygame.mixer.music.pause()
+        paused = True
 
     def skip_forward(self):
-        self.play_music()
+        global current_song, paused
+
+        try:
+            self.song_list.selection_clear(0, 10)
+            self.song_list.selection_set(list_of_songs.index(current_song) + 1)
+            current_song = list_of_songs[self.song_list.curselection()[0]]
+            self.play_music()
+
+        except:
+            pass
 
     def skip_backwards(self):
-        n = self.n
-        n -= 2
-        self.play_music()
+        global current_song, paused
+
+        try:
+            self.song_list.selection_clear(0, 10)
+            self.song_list.selection_set(list_of_songs.index(current_song) - 1)
+            current_song = list_of_songs[self.song_list.curselection()[0]]
+            self.play_music()
+
+        except:
+            pass
 
     def volume(self, value):
         pygame.mixer.music.set_volume(value)
 
     def progress(self):
-        a = pygame.mixer.Sound(f"{self.list_of_songs[self.n]}")
+        a = pygame.mixer.Sound(f"{list_of_songs[n]}")
         song_len = a.get_length() * 3
         for i in range(0, math.ceil(song_len)):
             time.sleep(.3)
@@ -225,6 +270,15 @@ class App(ctk.CTk):
                                        text="Gender:", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
         self.gender_button.grid(row=0, column=3, padx=(
             10, 500), pady=(10, 580))
+        
+        self.song_list = tk.Listbox(self, width=100, height=15)
+        self.song_list.grid(row=0, column=3, padx=(10, 10), pady=(10, 250))
+
+        self.select_folder_button = ctk.CTkButton(self, command=self.load_music)
+        self.select_folder_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
+                                          text="Select Folder", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.select_folder_button.grid(row=0, column=3, padx=(
+            10, 10), pady=(10, 580))
         
     def my_music_artist(self):
         self.music_artist_frame = FrameBuilder(self)
