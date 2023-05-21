@@ -4,6 +4,7 @@ from threading import Thread
 from PIL import Image
 import customtkinter as ctk
 from tkinter import filedialog
+from model.admin_dao import save_directory, check_existance, get_directory
 import tkinter as tk
 import pygame
 import os
@@ -63,7 +64,19 @@ class App(ctk.CTk):
     def load_music(self):
         global current_song
 
-        self.directory = filedialog.askdirectory()
+        if check_existance() is False:
+            obtain_directory = filedialog.askdirectory()
+            print(type(obtain_directory))
+            save_directory(obtain_directory)
+
+            self.directory = get_directory()
+
+        else:
+            self.directory = get_directory()
+            print(self.directory)
+
+        print(self.directory)
+        print(os.listdir(self.directory))
 
         for song in os.listdir(self.directory):
             name, ext = os.path.splitext(song)
@@ -75,13 +88,20 @@ class App(ctk.CTk):
 
         self.song_list.selection_set(0)
         current_song = list_of_songs[self.song_list.curselection()[0]]
+        print(current_song)
 
     def get_song_name(self, song_name):
         stripped_string = song_name[:-4]
         self.song_name_label = ctk.CTkLabel(self, text=stripped_string.title(
         ), text_color="#ffffff",  font=("Segoe UI", 20, "bold"))
-        self.song_name_label.grid(
-            row=0, column=0, padx=(10, 10), pady=(720, 10))
+
+        if self.song_name_label.winfo_ismapped():
+            self.song_name_label.grid_remove()
+            self.song_name_label.grid(
+                row=0, column=0, padx=(10, 10), pady=(720, 10))
+        else:
+            self.song_name_label.grid(
+                row=0, column=0, padx=(10, 10), pady=(720, 10))
 
     def threading(self):
         t1 = Thread(target=self.progress)
@@ -97,6 +117,7 @@ class App(ctk.CTk):
             pygame.mixer.music.set_volume(.5)
             self.get_song_name(current_song)
             self.toggle_buttons()
+            print(os.path.join(self.directory, current_song))
         else:
             pygame.mixer.music.unpause()
             paused = False
@@ -147,7 +168,7 @@ class App(ctk.CTk):
 
     def progress(self):
         a = pygame.mixer.Sound(f"{os.path.join(self.directory, current_song)}")
-        song_len = a.get_length() * 3
+        song_len = a.get_length() * 10
         for i in range(0, math.ceil(song_len)):
             time.sleep(.3)
             self.progress_bar.set(pygame.mixer.music.get_pos() / 1000000)
