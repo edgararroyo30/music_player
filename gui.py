@@ -1,6 +1,6 @@
 import time
 import math
-from threading import * 
+from threading import Thread
 from PIL import Image
 import customtkinter as ctk
 import pygame
@@ -10,62 +10,106 @@ class FrameBuilder(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-pygame.mixer.init()
-list_of_songs = []
-n=0
 
-def progress():
-    a = pygame.mixer.Sound(f"{list_of_songs[n]}")
-    song_len = a.get_length() * 3
-    for i in range(0, math.ceil(song_len)):
-        time.sleep(.3)
+
+
 
 
 class App(ctk.CTk):
-    
-    def threading():
-        t1 = Thread(target=progress)
+    n=0
 
-    def play_music():
-        pass
-    def skip_forward():
-        pass
-
-    def skip_backwards():
-        pass
-
-    def volume(value):
-        pygame.mixer.music.set_volume(value)
+    list_of_songs = ["./music/dispara.mp3"]
 
     def __init__(self):
         super().__init__()
 
         self.title("Music Player")
         self.geometry("1350x810")
+        pygame.mixer.init()
         self.resizable(0, 0)
         self.configure(fg_color="Black")
+        self.play_bar()
         self.search_frame_method()
         self.my_music_frame()
         self.my_music_songs()
         self.menu_frame_method()
 
+    def get_song_name(self, song_name):
+        stripped_string = song_name[8:-4]
+        self.song_name_label = ctk.CTkLabel(self, text=stripped_string.title(), text_color="#ffffff",  font=("Segoe UI", 20, "bold"))
+        self.song_name_label.grid(row=0, column=0, padx=(10, 10), pady=(720, 10))
+    
+    def threading(self):
+        t1 = Thread(target=self.progress)
+        t1.start()
+
+    def play_music(self):
+        self.threading()
+        n = self.n
+        current_song = n
+        if n > 2:
+            n = 0
+        song_name = self.list_of_songs[n]
+        pygame.mixer.music.load(song_name)
+        pygame.mixer.music.play(loops=0)
+        pygame.mixer.music.set_volume(.5)    
+        self.get_song_name(song_name)
+
+    def skip_forward(self):
+        self.play_music()
+
+    def skip_backwards(self):
+        n = self.n
+        n -= 2
+        self.play_music()
+
+    def volume(self, value):
+        pygame.mixer.music.set_volume(value)
+
+    def progress(self):
+        a = pygame.mixer.Sound(f"{self.list_of_songs[self.n]}")
+        song_len = a.get_length() * 3
+        for i in range(0, math.ceil(song_len)):
+            time.sleep(.3)
+            self.progress_bar.set(pygame.mixer.music.get_pos() / 1000000)
+
     def play_bar(self):
+
+        play_icon = ctk.CTkImage(dark_image=Image.open("./img/play.png"),
+                                  size=(25, 25))
         self.play_button = ctk.CTkButton(self, command=self.play_music)
-        self.play_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                       text="Play", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.play_button.configure(width=1, bg_color="black",image= play_icon,
+                                       text="", text_color="black",  font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.play_button.grid(row=0, column=3, padx=(10, 350), pady=(720, 10))
         
+        skip_f_icon = ctk.CTkImage(dark_image=Image.open("./img/fast-forward.png"),
+                                  size=(25, 25))
         self.skip_f_button = ctk.CTkButton(self, command=self.skip_forward)
-        self.skip_f_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                       text=">", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.skip_f_button.configure(width=1, bg_color="black",
+                                       text="", text_color="black", image=skip_f_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.skip_f_button.grid(row=0, column=3, padx=(10, 260), pady=(720, 10))
         
+        skip_b_icon = ctk.CTkImage(dark_image=Image.open("./img/fast-backward.png"),
+                                  size=(25, 25))
         self.skip_b_button = ctk.CTkButton(self, command=self.skip_backwards)
-        self.skip_b_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                       text="<", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.skip_b_button.configure(width=1, bg_color="black",
+                                       text="", text_color="black", image= skip_b_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.skip_b_button.grid(row=0, column=3, padx=(10, 440), pady=(720, 10))
+
+        speaker_icon = ctk.CTkImage(dark_image=Image.open("./img/speaker.png"),
+                                  size=(25, 25))
+        self.speaker_button = ctk.CTkButton(self)
+        self.speaker_button.configure(width=1, bg_color="black",
+                                       text="", text_color="black", image= speaker_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.speaker_button.grid(row=0, column=3, padx=(400, 10), pady=(720, 10))
 
         self.slider = ctk.CTkSlider(self, from_= 0, to=1, command=self.volume)
         self.slider.configure()
+        self.slider.grid(row=0, column=3, padx=(650, 10), pady=(720, 10))
 
-        self.progress = ctk.CTkProgressBar(self)
+        self.progress_bar = ctk.CTkProgressBar(self, progress_color='#32a85a', width=250, height=5)
+        self.progress_bar.grid(row=0, column=3, padx=(10, 340), pady=(780, 10))
+
 
     def search_frame_method(self):
         self.search_frame = FrameBuilder(self)
