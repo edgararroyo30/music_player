@@ -2,3 +2,5 @@ img/
 music_player/
 music/
 .vscode/
+database/
+model/__pycache__
