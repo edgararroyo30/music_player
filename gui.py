@@ -48,6 +48,18 @@ class App(ctk.CTk):
             self.pause_button.grid(
                 row=0, column=3, padx=(10, 350), pady=(720, 10))
 
+    def toggle_muted_buttons(self):
+        if self.unmute_button.winfo_ismapped():
+
+            self.unmute_button.grid_remove()
+            self.mute_button.grid(
+                row=0, column=3, padx=(400, 10), pady=(720, 10))
+
+        else:
+            self.mute_button.grid_remove()
+            self.unmute_button.grid(
+                row=0, column=3, padx=(400, 10), pady=(720, 10))
+
     def load_music(self):
         global current_song
 
@@ -125,6 +137,14 @@ class App(ctk.CTk):
     def volume(self, value):
         pygame.mixer.music.set_volume(value)
 
+    def mute(self):
+        pygame.mixer.music.set_volume(0)
+        self.toggle_muted_buttons()
+
+    def unmute(self):
+        pygame.mixer.music.set_volume(.5)
+        self.toggle_muted_buttons()
+
     def progress(self):
         a = pygame.mixer.Sound(f"{os.path.join(self.directory, current_song)}")
         song_len = a.get_length() * 3
@@ -165,14 +185,21 @@ class App(ctk.CTk):
 
         speaker_icon = ctk.CTkImage(dark_image=Image.open("./img/speaker.png"),
                                     size=(25, 25))
-        self.speaker_button = ctk.CTkButton(self)
-        self.speaker_button.configure(width=1, bg_color="black",
-                                      text="", text_color="black", image=speaker_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
-        self.speaker_button.grid(
+        self.mute_button = ctk.CTkButton(self, command=self.mute)
+        self.mute_button.configure(width=1, bg_color="black",
+                                   text="", text_color="black", image=speaker_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.mute_button.grid(
             row=0, column=3, padx=(400, 10), pady=(720, 10))
 
+        muted_icon = ctk.CTkImage(dark_image=Image.open("./img/muted_speaker.png"),
+                                  size=(25, 25))
+
+        self.unmute_button = ctk.CTkButton(self, command=self.unmute)
+        self.unmute_button.configure(width=1, bg_color="black",
+                                     text="", text_color="black", image=muted_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
+
         self.slider = ctk.CTkSlider(self, from_=0, to=1, command=self.volume)
-        self.slider.configure()
+        self.slider.configure(button_color="#ffffff")
         self.slider.grid(row=0, column=3, padx=(650, 10), pady=(720, 10))
 
         self.progress_bar = ctk.CTkProgressBar(
