@@ -176,7 +176,7 @@ class App(ctk.CTk):
         self.slider.grid(row=0, column=3, padx=(650, 10), pady=(720, 10))
 
         self.progress_bar = ctk.CTkProgressBar(
-            self, progress_color='#32a85a', width=250, height=5)
+            self, progress_color='#ffffff', width=250, height=5)
         self.progress_bar.grid(row=0, column=3, padx=(10, 340), pady=(780, 10))
 
     def search_frame_method(self):
@@ -295,8 +295,15 @@ class App(ctk.CTk):
         self.gender_button.grid(row=0, column=3, padx=(
             10, 500), pady=(10, 580))
 
-        self.song_list = tk.Listbox(self, width=100, height=15)
-        self.song_list.grid(row=0, column=3, padx=(10, 10), pady=(10, 250))
+        self.song_list_frame = tk.Frame(self, bd=2)
+        self.song_list_frame.configure(
+            width=100, height=15, background="#1b1b1b")
+        self.song_list_frame.grid(
+            row=0, column=3, padx=(10, 350), pady=(10, 250))
+
+        self.song_list = tk.Listbox(self.song_list_frame, width=100, height=15)
+        self.song_list.configure(foreground="white", background="#1b1b1b")
+        self.song_list.grid(row=0, column=0)
 
         self.select_folder_button = ctk.CTkButton(
             self, command=self.load_music)
