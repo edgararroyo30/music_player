@@ -60,8 +60,7 @@ class App(ctk.CTk):
 
     def compare_table_to_DB(self):
 
-        complete_song = self.get_column_values(self.song_list, 0, 1)
-        complete_song.reverse()
+        complete_song = 'song'
 
         if complete_song == get_song():
             return True
@@ -110,7 +109,6 @@ class App(ctk.CTk):
         if self.compare_table_to_DB() is False:
             for song in get_song():
                 name, ext = os.path.splitext(song)
-                self.song_list.insert('', 0, values=(name.title(), ext))
 
     def load_recently_played(self):
 
@@ -407,29 +405,18 @@ class App(ctk.CTk):
         self.style.theme_use('equilux')
 
         self.song_list_frame = ctk.CTkScrollableFrame(
-            self, bg_color=self.main_color, border_color=self.main_color, fg_color=self.main_color, border_width=5)
+            self, bg_color=self.main_color, border_color='black', fg_color=self.main_color, border_width=1)
         self.song_list_frame.configure(
-            width=600, height=15)
+            width=980, height=560)
         self.song_list_frame.grid(
-            row=0, column=3, padx=(0, 128), pady=(10, 250))
+            row=0, column=3, padx=(0, 10), pady=(135, 100))
 
-        self.song_list = ttk.Treeview(
-            self.song_list_frame, columns=('Song Name', 'Format', 'Artist', 'Gender'))
-
-        self.scroll = ttk.Scrollbar(self,
-                                    orient='vertical', command=self.song_list.yview)
-        self.scroll.grid(row=4, column=4, padx=(
-            1, 10), pady=(0, 10), sticky='nse')
-        self.song_list.configure(yscrollcommand=self.scroll.set)
-        self.song_list.heading('#0', text='ID')
-        self.song_list.heading('#1', text='Song Name')
-        self.song_list.heading('#2', text='Format')
-        self.song_list.heading('#3', text='Artist')
-        self.song_list.heading('#4', text='Gender')
-        self.song_list.grid(row=0, column=0, sticky='nse', columnspan=10)
-        self.song_list.column("#0", width=0, stretch=False)
-        self.song_list.config(displaycolumns=(
-            'Song Name', 'Format', 'Artist', 'Gender'))
+        add_to_frame = AddToFrame(
+            self, self.song_list_frame, self.main_color, self.text_color)
+        add_to_frame.set_values(
+            'Dispara', 'Nicki Nicole', 'Trap', 'Alma', '2:45')
+        add_to_frame.set_display(1)
+        add_to_frame.get_name()
 
         self.select_folder_button = ctk.CTkButton(
             self, command=self.load_music)
@@ -442,6 +429,7 @@ class App(ctk.CTk):
             self, progress_color=self.main_color, width=1010, height=2, bg_color=self.main_color, fg_color=self.main_color, border_color=self.main_color)
         self.fill.grid(row=0, column=3, padx=(
             0, 10), pady=(10, 615))
+
         self.load_music()
 
     def my_music_artist(self):
@@ -583,6 +571,98 @@ class App(ctk.CTk):
             text="Settings", text_color=self.text_color,  font=("Segoe UI", 30, "bold"),  fg_color=self.main_color)
         self.settings_label.grid(
             row=0, column=3, padx=(10, 820), pady=(10, 720))
+
+
+class AddToFrame(ctk.CTkButton):
+    def __init__(self, master, frame, main_color, text_color):
+        super().__init__(master)
+        self.frame = frame
+        self.main_color = main_color
+        self.text_color = text_color
+        self.song_name_button = ctk.CTkButton(self.frame)
+        self.song_artist_button = ctk.CTkButton(self.frame)
+        self.song_album_button = ctk.CTkButton(self.frame)
+        self.song_gender_button = ctk.CTkButton(self.frame)
+        self.song_duration_button = ctk.CTkButton(self.frame)
+        self.separator1 = ctk.CTkButton(self.frame)
+        self.separator2 = ctk.CTkButton(self.frame)
+        self.separator3 = ctk.CTkButton(self.frame)
+        self.separator4 = ctk.CTkButton(self.frame)
+        self.song_name_label = ctk.CTkLabel(self.frame)
+        self.song_artist_label = ctk.CTkLabel(self.frame)
+        self.song_album_label = ctk.CTkLabel(self.frame)
+        self.song_gender_label = ctk.CTkLabel(self.frame)
+        self.song_duration_label = ctk.CTkLabel(self.frame)
+
+    def set_values(self, song_name, song_artist, song_gender, song_album, song_duration):
+
+        self.song_name = song_name
+        self.song_name_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                        text=song_name, text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+
+        self.song_artist_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text=song_artist, text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+
+        self.song_gender_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text=song_gender, text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+
+        self.song_album_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                         text=song_album, text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+
+        self.song_duration_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                            text=song_duration, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+
+    def add_spaces(self, row):
+        self.separator1.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                  text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        self.separator2.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                  text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        self.separator3.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                  text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        self.separator4.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                  text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        self.separator1.grid(column=1, row=row, padx=(100, 50))
+        self.separator2.grid(column=3, row=row, padx=(100, 50))
+        self.separator3.grid(column=5, row=row, padx=(100, 50))
+        self.separator4.grid(column=7, row=row, padx=(100, 50))
+
+    def add_labels(self):
+        self.song_name_label.configure(width=1, bg_color=self.main_color,
+                                       text='Song name', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+
+        self.song_artist_label.configure(width=1, bg_color=self.main_color,
+                                         text='Artist', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+
+        self.song_gender_label.configure(width=1, bg_color=self.main_color,
+                                         text='Gender', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+
+        self.song_album_label.configure(width=1, bg_color=self.main_color,
+                                        text='Album', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+
+        self.song_duration_label.configure(width=1, bg_color=self.main_color,
+                                           text='Duration', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+
+        self.song_name_button.grid(column=0, row=0, padx=(1, 1))
+        self.song_artist_button.grid(column=2, row=0, padx=(1, 1))
+        self.song_album_button.grid(column=4, row=0, padx=(1, 1))
+        self.song_gender_button.grid(column=6, row=0, padx=(1, 1))
+        self.song_duration_button.grid(column=10, row=0, padx=(1, 1))
+
+        self.add_spaces(0)
+
+    def set_display(self, row):
+        self.add_labels()
+
+        self.song_name_button.grid(column=0, row=row, padx=(1, 1))
+        self.song_artist_button.grid(column=2, row=row, padx=(1, 1))
+        self.song_album_button.grid(column=4, row=row, padx=(1, 1))
+        self.song_gender_button.grid(column=6, row=row, padx=(1, 1))
+        self.song_duration_button.grid(column=10, row=row, padx=(1, 1))
+
+        self.add_spaces(row)
+
+    def get_name(self):
+        print(self.song_name)
 
 
 app = App()
