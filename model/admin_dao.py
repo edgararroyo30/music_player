@@ -73,6 +73,8 @@ def create_songs_table():
     CREATE TABLE IF NOT EXISTS songs_record(
     song_id INTEGER,
     song_name VARCHAR(100),
+    directory_id INTEGER,
+    playlist_id INTEGER,
     PRIMARY KEY(song_id AUTOINCREMENT)
     )
     '''
@@ -98,12 +100,19 @@ def song_existance(song):
     return False
 
 
-def save_songs(songs):
+def save_songs(songs, directory):
     connect = ConnectDB()
+    sql_id = f''' SELECT id_directory FROM music_directory WHERE directory_path = '{directory}' '''
+    connect.cursor.execute(sql_id)
+    directory_id = connect.cursor.fetchone()
+    connect.close()
+    directory_id = str(directory_id)
+    directory_id = directory_id.strip("()")
+    directory_id = directory_id.strip(",")
 
     for song in songs:
         if song_existance(song) is False:
-            sql = f""" INSERT INTO songs_record (song_name) VALUES ('{song}')"""
+            sql = f""" INSERT INTO songs_record (song_name, directory_id) VALUES ('{song}', {directory_id})"""
             connect.cursor.execute(sql)
             connect.close()
 
@@ -176,3 +185,65 @@ def get_recently_played_songs():
 
     list_songs = iterate_song(song_name)
     return list_songs
+
+
+def create_playlist_name_table():
+    connect = ConnectDB()
+
+    sql = '''
+        CREATE TABLE IF NOT EXISTS  playlist_name_storage(
+        id INTEGER,
+        playlist_name VARCHAR(200),
+        PRIMARY KEY(id AUTOINCREMENT)
+        )
+    '''
+    connect.cursor.execute(sql)
+    connect.close()
+
+
+def add_playlist_name(playlist_name):
+    connect = ConnectDB()
+
+    sql = f'''
+        INSERT INTO playlist_name_storage(playlist_name) VALUES ('{playlist_name}')
+    '''
+    connect.cursor.execute(sql)
+    connect.close()
+
+
+def create_queue_table():
+    connect = ConnectDB()
+
+    sql = '''
+        CREATE TABLE IF NOT EXISTS queue(
+        id INTEGER,
+        song_in_queue VARCHAR(100), 
+        PRIMARY KEY(id AUTOINCREMENT)
+        )
+    '''
+
+    connect.cursor.execute(sql)
+    connect.close()
+
+
+def add_song_to_playlist(song_name, playlist_name):
+    connect = ConnectDB()
+
+    sql_id = f'''
+        SELECT id FROM playlist_name_storage WHERE playlist_name = '{playlist_name}'
+    '''
+    connect.cursor.execute(sql_id)
+    playlist_id = connect.cursor.fetchone()
+    connect.close()
+    playlist_id = str(playlist_id)
+    playlist_id = playlist_id.strip("()")
+    playlist_id = playlist_id.strip(",")
+
+    sql = f'''
+        UPDATE songs_record 
+        SET playlist_id ={playlist_id}
+        WHERE song_name = '{song_name}';
+    '''
+
+    connect.cursor.execute(sql)
+    connect.close()
