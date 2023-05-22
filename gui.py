@@ -2,6 +2,7 @@ import time
 import math
 from threading import Thread
 from tkinter import filedialog, ttk
+from ttkthemes import ThemedStyle
 import tkinter as tk
 import os
 import pygame
@@ -9,9 +10,8 @@ from PIL import Image
 import customtkinter as ctk
 from model.admin_dao import save_directory, check_existance, get_directory, get_song
 from model.admin_dao import create_songs_table, create__directory_table, save_songs
+from model.admin_dao import create_recently_played_table, add_recently_played_song, get_recently_played_songs
 
-
-n = 0
 
 list_of_songs = []
 currrent_song = ""
@@ -40,6 +40,7 @@ class App(ctk.CTk):
         self.menu_frame_method()
         create__directory_table()
         create_songs_table()
+        create_recently_played_table()
 
     def get_column_values(self, tree, column1, column2):
         values = []
@@ -107,6 +108,12 @@ class App(ctk.CTk):
                 name, ext = os.path.splitext(song)
                 self.song_list.insert('', 0, values=(name.title(), ext))
 
+    def load_recently_played(self):
+
+        for song in get_recently_played_songs():
+            name, ext = os.path.splitext(song)
+            self.recently_played.insert('', 0, values=(name.title(), ext))
+
     def load_music_to_play(self):
         global current_song
         song_name = self.song_list.item(
@@ -144,6 +151,7 @@ class App(ctk.CTk):
             self.get_song_name(current_song)
             self.toggle_buttons()
             print(os.path.join(self.directory, current_song))
+            add_recently_played_song(current_song)
         else:
             pygame.mixer.music.unpause()
             paused = False
@@ -382,11 +390,15 @@ class App(ctk.CTk):
         self.gender_button.grid(row=0, column=3, padx=(
             10, 500), pady=(10, 580))
 
-        self.song_list_frame = tk.Frame(self)
+        self.style = ThemedStyle(self)
+        self.style.set_theme("equilux")
+        self.style.theme_use('equilux')
+
+        self.song_list_frame = tk.Frame(self, background='#1b1b1b')
         self.song_list_frame.configure(
-            width=100, height=15, background="#1b1b1b")
+            width=600, height=15)
         self.song_list_frame.grid(
-            row=0, column=3, padx=(0, 0), pady=(10, 250))
+            row=0, column=3, padx=(0, 128), pady=(10, 250))
 
         self.song_list = ttk.Treeview(
             self.song_list_frame, columns=('Song Name', 'Format', 'Artist', 'Gender'))
@@ -401,7 +413,7 @@ class App(ctk.CTk):
         self.song_list.heading('#2', text='Format')
         self.song_list.heading('#3', text='Artist')
         self.song_list.heading('#4', text='Gender')
-        self.song_list.grid(row=0, column=0)
+        self.song_list.grid(row=0, column=0, sticky='nse', columnspan=10)
         self.song_list.column("#0", width=0, stretch=False)
         self.song_list.config(displaycolumns=(
             'Song Name', 'Format', 'Artist', 'Gender'))
@@ -474,6 +486,33 @@ class App(ctk.CTk):
                                           text="Random play all music", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
         self.random_play_button.grid(row=0, column=3, padx=(
             10, 780), pady=(10, 650))
+
+        self.recently_played_song_list_frame = tk.Frame(
+            self, background='#1b1b1b')
+        self.recently_played_song_list_frame.configure(
+            width=600, height=15)
+        self.recently_played_song_list_frame.grid(
+            row=0, column=3, padx=(0, 128), pady=(10, 250))
+
+        self.recently_played = ttk.Treeview(
+            self.recently_played_song_list_frame, columns=('Song Name', 'Format', 'Artist', 'Gender'))
+
+        self.scroll = ttk.Scrollbar(self,
+                                    orient='vertical', command=self.recently_played.yview)
+        self.scroll.grid(row=4, column=4, padx=(
+            1, 10), pady=(0, 10), sticky='nse')
+        self.recently_played.configure(yscrollcommand=self.scroll.set)
+        self.recently_played.heading('#0', text='ID')
+        self.recently_played.heading('#1', text='Song Name')
+        self.recently_played.heading('#2', text='Format')
+        self.recently_played.heading('#3', text='Artist')
+        self.recently_played.heading('#4', text='Gender')
+        self.recently_played.grid(row=0, column=0, sticky='nse', columnspan=10)
+        self.recently_played.column("#0", width=0, stretch=False)
+        self.recently_played.config(displaycolumns=(
+            'Song Name', 'Format', 'Artist', 'Gender'))
+
+        self.load_recently_played()
 
     def playing_now_frame(self):
         self.main_frame = FrameBuilder(self)
