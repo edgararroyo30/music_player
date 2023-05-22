@@ -11,6 +11,7 @@ import customtkinter as ctk
 from model.admin_dao import save_directory, check_existance, get_directory, get_song
 from model.admin_dao import create_songs_table, create__directory_table, save_songs
 from model.admin_dao import create_recently_played_table, add_recently_played_song, get_recently_played_songs
+from model.admin_dao import create_playlist_name_table, create_queue_table
 
 
 list_of_songs = []
@@ -25,6 +26,9 @@ class FrameBuilder(ctk.CTkFrame):
 
 class App(ctk.CTk):
 
+    main_color = "#1b1b1b"
+    text_color = "#ffffff"
+
     def __init__(self):
         super().__init__()
 
@@ -33,14 +37,16 @@ class App(ctk.CTk):
         pygame.mixer.init()
         self.resizable(0, 0)
         self.configure(fg_color="Black")
+        create__directory_table()
+        create_songs_table()
+        create_recently_played_table()
+        create_playlist_name_table()
+        create_queue_table()
         self.play_bar()
         self.search_frame_method()
         self.my_music_frame()
         self.my_music_songs()
         self.menu_frame_method()
-        create__directory_table()
-        create_songs_table()
-        create_recently_played_table()
 
     def get_column_values(self, tree, column1, column2):
         values = []
@@ -96,12 +102,10 @@ class App(ctk.CTk):
         else:
             self.directory = get_directory()
 
-        self.compare_table_to_DB()
-
         for song in os.listdir(self.directory):
             name, ext = os.path.splitext(song)
             if ext == '.mp3':
-                save_songs(list_of_songs)
+                save_songs(os.listdir(self.directory), self.directory)
 
         if self.compare_table_to_DB() is False:
             for song in get_song():
@@ -276,13 +280,14 @@ class App(ctk.CTk):
 
     def search_frame_method(self):
         self.search_frame = FrameBuilder(self)
-        self.search_frame.configure(width=310, height=50, fg_color="#1b1b1b")
+        self.search_frame.configure(
+            width=310, height=50, fg_color=self.main_color)
         self.search_frame.grid(
             row=0, column=0, padx=10, pady=(10, 700), sticky="nsw")
 
         self.search_entry = ctk.CTkEntry(self)
-        self.search_entry.configure(border_color="#ffffff", width=230, bg_color="#1b1b1b", text_color="#ffffff",
-                                    placeholder_text="search", placeholder_text_color="#ffffff", font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.search_entry.configure(border_color=self.text_color, width=230, bg_color=self.main_color, text_color=self.text_color,
+                                    placeholder_text="search", placeholder_text_color=self.text_color, font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.search_entry.grid(row=0, column=0, padx=(
             0, 30), pady=(10, 700))
 
@@ -290,103 +295,110 @@ class App(ctk.CTk):
                                    size=(20, 20))
 
         self.search_button = ctk.CTkButton(self)
-        self.search_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b", text="",
-                                     image=search_icon, text_color="#1b1b1b",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.search_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color, text="",
+                                     image=search_icon, text_color=self.main_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.search_button.grid(row=0, column=0, padx=(
             250, 0), pady=(10, 700))
 
     def menu_frame_method(self):
         self.menu_frame = FrameBuilder(self)
         self.menu_frame.configure(
-            width=310, height=590, fg_color="#1b1b1b")
+            width=310, height=590, fg_color=self.main_color)
         self.menu_frame.grid(
             row=0, column=0, padx=10, pady=(130, 100), sticky="nsw")
 
         self.my_music_button = ctk.CTkButton(self, command=self.my_music_frame)
-        self.my_music_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                       text="My Music", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.my_music_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                       text="My Music", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.my_music_button.grid(row=0, column=0, padx=(
             10, 200), pady=(10, 500), sticky="ew")
 
         self.recently_played_button = ctk.CTkButton(
             self, command=self.recently_played_frame)
-        self.recently_played_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                              text="Recently Played", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.recently_played_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                              text="Recently Played", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.recently_played_button.grid(row=0, column=0, padx=(
             10, 160), pady=(10, 430), sticky="ew")
 
         self.playing_now_button = ctk.CTkButton(
             self, command=self.playing_now_frame)
-        self.playing_now_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                          text="Playing Now", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.playing_now_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text="Playing Now", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.playing_now_button.grid(row=0, column=0, padx=(
             10, 179), pady=(10, 360), sticky="ew")
 
         self.library_button = ctk.CTkButton(self, command=self.library_frame)
-        self.library_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                      text="Library", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.library_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                      text="Library", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.library_button.grid(row=0, column=0, padx=(
             10, 215), pady=(10, 290), sticky="ew")
 
         self.settings_button = ctk.CTkButton(self, command=self.settings_frame)
-        self.settings_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                       text="Settings", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.settings_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                       text="Settings", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.settings_button.grid(row=0, column=0, padx=(
             10, 215), pady=(550, 10), sticky="ew")
 
     def my_music_frame(self):
         self.main_frame = FrameBuilder(self)
-        self.main_frame.configure(width=1010, height=710, fg_color="#1b1b1b")
+        self.main_frame.configure(
+            width=1010, height=710, fg_color=self.main_color)
         self.main_frame.grid(row=0, column=3, padx=(0, 10),
                              pady=(10, 100), sticky="nsew")
 
         self.my_music_label = ctk.CTkLabel(self)
         self.my_music_label.configure(
-            text="My Music", text_color="#ffffff",  font=("Segoe UI", 30, "bold"),  fg_color="#1b1b1b")
+            text="My Music", text_color=self.text_color,  font=("Segoe UI", 30, "bold"),  fg_color=self.main_color)
         self.my_music_label.grid(
-            row=0, column=3, padx=(10, 807), pady=(10, 720))
+            row=0, column=3, padx=(10, 807), pady=(10, 745))
 
         self.songs_button = ctk.CTkButton(self, command=self.my_music_songs)
-        self.songs_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                    text="Songs", text_color="#ffffff",  font=("Segoe UI", 20, "bold"),  fg_color="#1b1b1b")
+        self.songs_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                    text="Songs", text_color=self.text_color,  font=("Segoe UI", 20, "bold"),  fg_color=self.main_color)
         self.songs_button.grid(row=0, column=3, padx=(
-            10, 890), pady=(10, 650))
+            10, 890), pady=(10, 665))
 
         self.artist_button = ctk.CTkButton(self, command=self.my_music_artist)
-        self.artist_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                     text="Artists", text_color="#ffffff",  font=("Segoe UI", 20, "bold"),  fg_color="#1b1b1b")
+        self.artist_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                     text="Artists", text_color=self.text_color,  font=("Segoe UI", 20, "bold"),  fg_color=self.main_color)
         self.artist_button.grid(row=0, column=3, padx=(
-            10, 700), pady=(10, 650))
+            10, 700), pady=(10, 665))
 
         self.albums_button = ctk.CTkButton(self, command=self.my_music_albums)
-        self.albums_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                     text="Albums", text_color="#ffffff",  font=("Segoe UI", 20, "bold"),  fg_color="#1b1b1b")
+        self.albums_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                     text="Albums", text_color=self.text_color,  font=("Segoe UI", 20, "bold"),  fg_color=self.main_color)
         self.albums_button.grid(row=0, column=3, padx=(
-            10, 500), pady=(10, 650))
+            10, 500), pady=(10, 665))
+
+        self.divisor = ctk.CTkProgressBar(
+            self, progress_color="#4a4d50", width=1010, height=5)
+        self.divisor.grid(row=0, column=3, padx=(
+            0, 10), pady=(10, 620))
+
         self.my_music_songs()
 
     def my_music_songs(self):
         self.music_songs_frame = FrameBuilder(self)
         self.music_songs_frame.configure(
-            width=1010, height=605, fg_color="#1b1b1b")
+            width=1010, height=605, fg_color=self.main_color)
         self.music_songs_frame.grid(row=0, column=3, padx=(0, 10),
                                     pady=(105, 100), sticky="nsew")
 
         self.random_play_button = ctk.CTkButton(self)
-        self.random_play_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                          text="Random Play", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.random_play_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text="Shuffle all", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.random_play_button.grid(row=0, column=3, padx=(
             10, 855), pady=(10, 580))
 
         self.order_by_button = ctk.CTkButton(self)
-        self.order_by_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                       text="Order By:", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.order_by_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                       text="Order by:", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.order_by_button.grid(row=0, column=3, padx=(
             10, 660), pady=(10, 580))
 
         self.gender_button = ctk.CTkButton(self)
-        self.gender_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                     text="Gender:", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.gender_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                     text="Gender:", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.gender_button.grid(row=0, column=3, padx=(
             10, 500), pady=(10, 580))
 
@@ -394,7 +406,8 @@ class App(ctk.CTk):
         self.style.set_theme("equilux")
         self.style.theme_use('equilux')
 
-        self.song_list_frame = tk.Frame(self, background='#1b1b1b')
+        self.song_list_frame = ctk.CTkScrollableFrame(
+            self, bg_color=self.main_color, border_color=self.main_color, fg_color=self.main_color, border_width=5)
         self.song_list_frame.configure(
             width=600, height=15)
         self.song_list_frame.grid(
@@ -420,75 +433,81 @@ class App(ctk.CTk):
 
         self.select_folder_button = ctk.CTkButton(
             self, command=self.load_music)
-        self.select_folder_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                            text="Select Folder", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.select_folder_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                            text="Select Folder", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.select_folder_button.grid(row=0, column=3, padx=(
             10, 10), pady=(10, 580))
+
+        self.fill = ctk.CTkProgressBar(
+            self, progress_color=self.main_color, width=1010, height=2, bg_color=self.main_color, fg_color=self.main_color, border_color=self.main_color)
+        self.fill.grid(row=0, column=3, padx=(
+            0, 10), pady=(10, 615))
         self.load_music()
 
     def my_music_artist(self):
         self.music_artist_frame = FrameBuilder(self)
         self.music_artist_frame.configure(
-            width=1010, height=605, fg_color="#1b1b1b")
+            width=1010, height=605, fg_color=self.main_color)
         self.music_artist_frame.grid(row=0, column=3, padx=(0, 10),
                                      pady=(105, 100), sticky="nsew")
 
         self.random_play_button = ctk.CTkButton(self)
-        self.random_play_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                          text="Random Play", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.random_play_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text="Random Play", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.random_play_button.grid(row=0, column=3, padx=(
             10, 855), pady=(10, 580))
 
         self.order_by_button = ctk.CTkButton(self)
-        self.order_by_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                       text="Order By:", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.order_by_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                       text="Order By:", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.order_by_button.grid(row=0, column=3, padx=(
             10, 660), pady=(10, 580))
 
     def my_music_albums(self):
         self.music_albums_frame = FrameBuilder(self)
         self.music_albums_frame.configure(
-            width=1010, height=605, fg_color="#1b1b1b")
+            width=1010, height=605, fg_color=self.main_color)
         self.music_albums_frame.grid(row=0, column=3, padx=(0, 10),
                                      pady=(105, 100), sticky="nsew")
         self.random_play_button = ctk.CTkButton(self)
-        self.random_play_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                          text="Random Play", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.random_play_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text="Random Play", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.random_play_button.grid(row=0, column=3, padx=(
             10, 855), pady=(10, 580))
 
         self.order_by_button = ctk.CTkButton(self)
-        self.order_by_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                       text="Order By:", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.order_by_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                       text="Order By:", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.order_by_button.grid(row=0, column=3, padx=(
             10, 660), pady=(10, 580))
 
         self.gender_button = ctk.CTkButton(self)
-        self.gender_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                     text="Gender:", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.gender_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                     text="Gender:", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.gender_button.grid(row=0, column=3, padx=(
             10, 500), pady=(10, 580))
 
     def recently_played_frame(self):
         self.main_frame = FrameBuilder(self)
-        self.main_frame.configure(width=1010, height=710, fg_color="#1b1b1b")
+        self.main_frame.configure(
+            width=1010, height=710, fg_color=self.main_color)
         self.main_frame.grid(row=0, column=3, padx=(0, 10),
                              pady=(10, 100), sticky="nsew")
 
         self.recently_played_label = ctk.CTkLabel(self)
         self.recently_played_label.configure(
-            text="Recently played", text_color="#ffffff",  font=("Segoe UI", 30, "bold"),  fg_color="#1b1b1b")
+            text="Recently played", text_color=self.text_color,  font=("Segoe UI", 30, "bold"),  fg_color=self.main_color)
         self.recently_played_label.grid(
             row=0, column=3, padx=(10, 720), pady=(10, 720))
 
         self.random_play_button = ctk.CTkButton(self)
-        self.random_play_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                          text="Random play all music", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.random_play_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text="Random play all music", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.random_play_button.grid(row=0, column=3, padx=(
             10, 780), pady=(10, 650))
 
         self.recently_played_song_list_frame = tk.Frame(
-            self, background='#1b1b1b')
+            self, background=self.main_color)
         self.recently_played_song_list_frame.configure(
             width=600, height=15)
         self.recently_played_song_list_frame.grid(
@@ -516,49 +535,52 @@ class App(ctk.CTk):
 
     def playing_now_frame(self):
         self.main_frame = FrameBuilder(self)
-        self.main_frame.configure(width=1010, height=710, fg_color="#1b1b1b")
+        self.main_frame.configure(
+            width=1010, height=710, fg_color=self.main_color)
         self.main_frame.grid(row=0, column=3, padx=(0, 10),
                              pady=(10, 100), sticky="nsew")
 
         self.playing_now_label = ctk.CTkLabel(self)
         self.playing_now_label.configure(
-            text="Playing now", text_color="#ffffff",  font=("Segoe UI", 30, "bold"),  fg_color="#1b1b1b")
+            text="Playing now", text_color=self.text_color,  font=("Segoe UI", 30, "bold"),  fg_color=self.main_color)
         self.playing_now_label.grid(
             row=0, column=3, padx=(10, 770), pady=(10, 720))
 
     def library_frame(self):
         self.main_frame = FrameBuilder(self)
-        self.main_frame.configure(width=1010, height=710, fg_color="#1b1b1b")
+        self.main_frame.configure(
+            width=1010, height=710, fg_color=self.main_color)
         self.main_frame.grid(row=0, column=3, padx=(0, 10),
                              pady=(10, 100), sticky="nsew")
 
         self.library_label = ctk.CTkLabel(self)
         self.library_label.configure(
-            text="Library", text_color="#ffffff",  font=("Segoe UI", 30, "bold"),  fg_color="#1b1b1b")
+            text="Library", text_color=self.text_color,  font=("Segoe UI", 30, "bold"),  fg_color=self.main_color)
         self.library_label.grid(
             row=0, column=3, padx=(10, 845), pady=(10, 720))
 
         self.random_play_button = ctk.CTkButton(self)
-        self.random_play_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                          text="New Playlist", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.random_play_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text="New Playlist", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.random_play_button.grid(row=0, column=3, padx=(
             10, 855), pady=(10, 650))
 
         self.order_by_button = ctk.CTkButton(self)
-        self.order_by_button.configure(width=1, bg_color="#1b1b1b", hover_color="#1b1b1b",
-                                       text="Order By:", text_color="#4b4b4b",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
+        self.order_by_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                       text="Order By:", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.order_by_button.grid(row=0, column=3, padx=(
             10, 640), pady=(10, 650))
 
     def settings_frame(self):
         self.main_frame = FrameBuilder(self)
-        self.main_frame.configure(width=1010, height=710, fg_color="#1b1b1b")
+        self.main_frame.configure(
+            width=1010, height=710, fg_color=self.main_color)
         self.main_frame.grid(row=0, column=3, padx=(0, 10),
                              pady=(10, 100), sticky="nsew")
 
         self.settings_label = ctk.CTkLabel(self)
         self.settings_label.configure(
-            text="Settings", text_color="#ffffff",  font=("Segoe UI", 30, "bold"),  fg_color="#1b1b1b")
+            text="Settings", text_color=self.text_color,  font=("Segoe UI", 30, "bold"),  fg_color=self.main_color)
         self.settings_label.grid(
             row=0, column=3, padx=(10, 820), pady=(10, 720))
 
