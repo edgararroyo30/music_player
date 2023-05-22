@@ -1,13 +1,15 @@
 import time
 import math
 from threading import Thread
+from tkinter import filedialog, ttk
+import tkinter as tk
+import os
+import pygame
 from PIL import Image
 import customtkinter as ctk
-from tkinter import filedialog
-from model.admin_dao import save_directory, check_existance, get_directory
-import tkinter as tk
-import pygame
-import os
+from model.admin_dao import save_directory, check_existance, get_directory, get_song
+from model.admin_dao import create_songs_table, create__directory_table, save_songs
+
 
 n = 0
 
@@ -36,6 +38,27 @@ class App(ctk.CTk):
         self.my_music_frame()
         self.my_music_songs()
         self.menu_frame_method()
+        create__directory_table()
+        create_songs_table()
+
+    def get_column_values(self, tree, column1, column2):
+        values = []
+        for item_id in tree.get_children():
+
+            get_name = tree.item(item_id)['values'][column1].lower()
+            get_ext = tree.item(item_id)['values'][column2]
+            get_full_song = get_name + get_ext
+            values.append(get_full_song)
+        return values
+
+    def compare_table_to_DB(self):
+
+        complete_song = self.get_column_values(self.song_list, 0, 1)
+        complete_song.reverse()
+
+        if complete_song == get_song():
+            return True
+        return False
 
     def toggle_buttons(self):
         if self.pause_button.winfo_ismapped():
@@ -62,33 +85,36 @@ class App(ctk.CTk):
                 row=0, column=3, padx=(400, 10), pady=(720, 10))
 
     def load_music(self):
-        global current_song
 
         if check_existance() is False:
             obtain_directory = filedialog.askdirectory()
-            print(type(obtain_directory))
             save_directory(obtain_directory)
 
             self.directory = get_directory()
 
         else:
             self.directory = get_directory()
-            print(self.directory)
 
-        print(self.directory)
-        print(os.listdir(self.directory))
+        self.compare_table_to_DB()
 
         for song in os.listdir(self.directory):
             name, ext = os.path.splitext(song)
             if ext == '.mp3':
-                list_of_songs.append(song)
+                save_songs(list_of_songs)
 
-        for song in list_of_songs:
-            self.song_list.insert("end", song)
+        if self.compare_table_to_DB() is False:
+            for song in get_song():
+                name, ext = os.path.splitext(song)
+                self.song_list.insert('', 0, values=(name.title(), ext))
 
-        self.song_list.selection_set(0)
-        current_song = list_of_songs[self.song_list.curselection()[0]]
-        print(current_song)
+    def load_music_to_play(self):
+        global current_song
+        song_name = self.song_list.item(
+            self.song_list.selection())['values'][0]
+        print(song_name + '.mp3')
+        song_full = song_name.lower() + '.mp3'
+        current_song = song_full
+        self.get_song_name(song_name)
 
     def get_song_name(self, song_name):
         stripped_string = song_name[:-4]
@@ -108,13 +134,13 @@ class App(ctk.CTk):
         t1.start()
 
     def play_music(self):
+        self.load_music_to_play()
         global current_song, paused
 
         if not paused:
             self.threading()
             pygame.mixer.music.load(os.path.join(self.directory, current_song))
             pygame.mixer.music.play()
-            pygame.mixer.music.set_volume(.5)
             self.get_song_name(current_song)
             self.toggle_buttons()
             print(os.path.join(self.directory, current_song))
@@ -133,9 +159,15 @@ class App(ctk.CTk):
         global current_song, paused
 
         try:
-            self.song_list.selection_clear(0, 10)
-            self.song_list.selection_set(list_of_songs.index(current_song) + 1)
-            current_song = list_of_songs[self.song_list.curselection()[0]]
+            selected_item = self.song_list.selection()
+            next_item = self.song_list.next(selected_item)
+            if next_item:
+                self.song_list.selection_set(next_item)
+            song_name = self.song_list.item(
+                self.song_list.selection())['values'][0]
+
+            song_full = song_name.lower() + '.mp3'
+            current_song = song_full
             self.play_music()
             self.toggle_buttons()
 
@@ -146,9 +178,16 @@ class App(ctk.CTk):
         global current_song, paused
 
         try:
-            self.song_list.selection_clear(0, 10)
-            self.song_list.selection_set(list_of_songs.index(current_song) - 1)
-            current_song = list_of_songs[self.song_list.curselection()[0]]
+
+            selected_item = self.song_list.selection()
+            prev_item = self.song_list.prev(selected_item)
+            if prev_item:
+                self.song_list.selection_set(prev_item)
+            song_name = self.song_list.item(
+                self.song_list.selection())['values'][0]
+
+            song_full = song_name.lower() + '.mp3'
+            current_song = song_full
             self.play_music()
             self.toggle_buttons()
 
@@ -343,15 +382,29 @@ class App(ctk.CTk):
         self.gender_button.grid(row=0, column=3, padx=(
             10, 500), pady=(10, 580))
 
-        self.song_list_frame = tk.Frame(self, bd=2)
+        self.song_list_frame = tk.Frame(self)
         self.song_list_frame.configure(
             width=100, height=15, background="#1b1b1b")
         self.song_list_frame.grid(
-            row=0, column=3, padx=(10, 350), pady=(10, 250))
+            row=0, column=3, padx=(0, 0), pady=(10, 250))
 
-        self.song_list = tk.Listbox(self.song_list_frame, width=100, height=15)
-        self.song_list.configure(foreground="white", background="#1b1b1b")
+        self.song_list = ttk.Treeview(
+            self.song_list_frame, columns=('Song Name', 'Format', 'Artist', 'Gender'))
+
+        self.scroll = ttk.Scrollbar(self,
+                                    orient='vertical', command=self.song_list.yview)
+        self.scroll.grid(row=4, column=4, padx=(
+            1, 10), pady=(0, 10), sticky='nse')
+        self.song_list.configure(yscrollcommand=self.scroll.set)
+        self.song_list.heading('#0', text='ID')
+        self.song_list.heading('#1', text='Song Name')
+        self.song_list.heading('#2', text='Format')
+        self.song_list.heading('#3', text='Artist')
+        self.song_list.heading('#4', text='Gender')
         self.song_list.grid(row=0, column=0)
+        self.song_list.column("#0", width=0, stretch=False)
+        self.song_list.config(displaycolumns=(
+            'Song Name', 'Format', 'Artist', 'Gender'))
 
         self.select_folder_button = ctk.CTkButton(
             self, command=self.load_music)
@@ -359,6 +412,7 @@ class App(ctk.CTk):
                                             text="Select Folder", text_color="#ffffff",  font=("Segoe UI", 15, "bold"),  fg_color="#1b1b1b")
         self.select_folder_button.grid(row=0, column=3, padx=(
             10, 10), pady=(10, 580))
+        self.load_music()
 
     def my_music_artist(self):
         self.music_artist_frame = FrameBuilder(self)
