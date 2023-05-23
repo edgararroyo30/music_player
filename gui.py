@@ -2,21 +2,69 @@ import time
 import math
 from threading import Thread
 from tkinter import filedialog, ttk
-from ttkthemes import ThemedStyle
 import tkinter as tk
+from ttkthemes import ThemedStyle
 import os
 import pygame
 from PIL import Image
 import customtkinter as ctk
-from model.admin_dao import save_directory, check_existance, get_directory, get_song
+from model.admin_dao import save_directory, get_directory
 from model.admin_dao import create_songs_table, create__directory_table, save_songs
-from model.admin_dao import create_recently_played_table, add_recently_played_song, get_recently_played_songs
-from model.admin_dao import create_playlist_name_table, create_queue_table
+from model.admin_dao import create_recently_played_table
+from model.admin_dao import create_playlist_name_table, create_queue_table, get_song, add_to_queue
 
-
-list_of_songs = []
-currrent_song = ""
+current_song = ''
 paused = False
+
+
+class NumberCounter:
+    def __init__(self):
+        self.counter = 0
+
+    def increase_counter(self):
+        self.counter += 2
+        print(f"Counter value: {self.counter}")
+
+
+class Music():
+    pygame.mixer.init()
+
+    def add_directory(self):
+        obtain_directory = filedialog.askdirectory()
+        save_directory(obtain_directory)
+
+    def load_music_to_play(self, song_name):
+        global current_song
+
+        song_full = song_name.lower() + '.mp3'
+        current_song = song_full
+
+    def play(self):
+        global paused, current_song
+        if not paused:
+            pygame.mixer.music.load(os.path.join(
+                get_directory(), current_song))
+            pygame.mixer.music.play()
+
+            print(os.path.join(get_directory(), current_song))
+
+        else:
+            pygame.mixer.music.unpause()
+            paused = False
+
+    def pause_music(self):
+        global paused
+        pygame.mixer.music.pause()
+        paused = True
+
+    def volume(self, value):
+        pygame.mixer.music.set_volume(value)
+
+    def mute(self):
+        pygame.mixer.music.set_volume(0)
+
+    def unmute(self):
+        pygame.mixer.music.set_volume(.5)
 
 
 class FrameBuilder(ctk.CTkFrame):
@@ -24,47 +72,69 @@ class FrameBuilder(ctk.CTkFrame):
         super().__init__(master)
 
 
-class App(ctk.CTk):
+class PlayBar():
+    def __init__(self, frame):
+        self.frame = frame
+        self.play_button = ctk.CTkButton(self.frame, command=self.play)
+        self.pause_button = ctk.CTkButton(self.frame, command=self.pause)
+        self.skip_f_button = ctk.CTkButton(self.frame)
+        self.skip_b_button = ctk.CTkButton(self.frame)
+        self.mute_button = ctk.CTkButton(self.frame, command=self.mute)
+        self.unmute_button = ctk.CTkButton(self.frame, command=self.unmute)
+        self.slider = ctk.CTkSlider(
+            self.frame, from_=0, to=1, command=self.volume)
+        self.progress_bar = ctk.CTkProgressBar(
+            self.frame, progress_color='#ffffff', width=250, height=5)
+        self.song_name_label = ctk.CTkLabel(self.frame)
 
-    main_color = "#1b1b1b"
-    text_color = "#ffffff"
+    def play_bar(self):
+        play_icon = ctk.CTkImage(dark_image=Image.open("./img/play.png"),
+                                 size=(25, 25))
 
-    def __init__(self):
-        super().__init__()
+        self.play_button.configure(width=1, bg_color="black", image=play_icon,
+                                   text="", text_color="black",  font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.play_button.grid(row=0, column=3, padx=(10, 350), pady=(720, 10))
 
-        self.title("Music Player")
-        self.geometry("1350x810")
-        pygame.mixer.init()
-        self.resizable(0, 0)
-        self.configure(fg_color="Black")
-        create__directory_table()
-        create_songs_table()
-        create_recently_played_table()
-        create_playlist_name_table()
-        create_queue_table()
-        self.play_bar()
-        self.search_frame_method()
-        self.my_music_frame()
-        self.my_music_songs()
-        self.menu_frame_method()
+        pause_icon = ctk.CTkImage(dark_image=Image.open("./img/pause.png"),
+                                  size=(25, 25))
 
-    def get_column_values(self, tree, column1, column2):
-        values = []
-        for item_id in tree.get_children():
+        self.pause_button.configure(width=1, bg_color="black", image=pause_icon,
+                                    text="", text_color="black",  font=("Segoe UI", 15, "bold"),  fg_color="black")
 
-            get_name = tree.item(item_id)['values'][column1].lower()
-            get_ext = tree.item(item_id)['values'][column2]
-            get_full_song = get_name + get_ext
-            values.append(get_full_song)
-        return values
+        skip_f_icon = ctk.CTkImage(dark_image=Image.open("./img/fast-forward.png"),
+                                   size=(25, 25))
 
-    def compare_table_to_DB(self):
+        self.skip_f_button.configure(width=1, bg_color="black",
+                                     text="", text_color="black", image=skip_f_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.skip_f_button.grid(
+            row=0, column=3, padx=(10, 260), pady=(720, 10))
 
-        complete_song = 'song'
+        skip_b_icon = ctk.CTkImage(dark_image=Image.open("./img/fast-backward.png"),
+                                   size=(25, 25))
 
-        if complete_song == get_song():
-            return True
-        return False
+        self.skip_b_button.configure(width=1, bg_color="black",
+                                     text="", text_color="black", image=skip_b_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.skip_b_button.grid(
+            row=0, column=3, padx=(10, 440), pady=(720, 10))
+
+        speaker_icon = ctk.CTkImage(dark_image=Image.open("./img/speaker.png"),
+                                    size=(25, 25))
+
+        self.mute_button.configure(width=1, bg_color="black",
+                                   text="", text_color="black", image=speaker_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.mute_button.grid(
+            row=0, column=3, padx=(400, 10), pady=(720, 10))
+
+        muted_icon = ctk.CTkImage(dark_image=Image.open("./img/muted_speaker.png"),
+                                  size=(25, 25))
+
+        self.unmute_button.configure(width=1, bg_color="black",
+                                     text="", text_color="black", image=muted_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
+
+        self.slider.configure(button_color="#ffffff")
+        self.slider.grid(row=0, column=3, padx=(650, 10), pady=(720, 10))
+
+        self.progress_bar.grid(row=0, column=3, padx=(10, 340), pady=(780, 10))
 
     def toggle_buttons(self):
         if self.pause_button.winfo_ismapped():
@@ -90,191 +160,63 @@ class App(ctk.CTk):
             self.unmute_button.grid(
                 row=0, column=3, padx=(400, 10), pady=(720, 10))
 
-    def load_music(self):
-
-        if check_existance() is False:
-            obtain_directory = filedialog.askdirectory()
-            save_directory(obtain_directory)
-
-            self.directory = get_directory()
-
-        else:
-            self.directory = get_directory()
-
-        for song in os.listdir(self.directory):
-            name, ext = os.path.splitext(song)
-            if ext == '.mp3':
-                save_songs(os.listdir(self.directory), self.directory)
-
-        if self.compare_table_to_DB() is False:
-            for song in get_song():
-                name, ext = os.path.splitext(song)
-
-    def load_recently_played(self):
-
-        for song in get_recently_played_songs():
-            name, ext = os.path.splitext(song)
-            self.recently_played.insert('', 0, values=(name.title(), ext))
-
-    def load_music_to_play(self):
-        global current_song
-        song_name = self.song_list.item(
-            self.song_list.selection())['values'][0]
-        print(song_name + '.mp3')
-        song_full = song_name.lower() + '.mp3'
-        current_song = song_full
-        self.get_song_name(song_name)
-
-    def get_song_name(self, song_name):
-        stripped_string = song_name[:-4]
-        self.song_name_label = ctk.CTkLabel(self, text=stripped_string.title(
-        ), text_color="#ffffff",  font=("Segoe UI", 20, "bold"))
-
-        if self.song_name_label.winfo_ismapped():
-            self.song_name_label.grid_remove()
-            self.song_name_label.grid(
-                row=0, column=0, padx=(10, 10), pady=(720, 10))
-        else:
-            self.song_name_label.grid(
-                row=0, column=0, padx=(10, 10), pady=(720, 10))
-
-    def threading(self):
-        t1 = Thread(target=self.progress)
-        t1.start()
-
-    def play_music(self):
-        self.load_music_to_play()
-        global current_song, paused
-
-        if not paused:
-            self.threading()
-            pygame.mixer.music.load(os.path.join(self.directory, current_song))
-            pygame.mixer.music.play()
-            self.get_song_name(current_song)
-            self.toggle_buttons()
-            print(os.path.join(self.directory, current_song))
-            add_recently_played_song(current_song)
-        else:
-            pygame.mixer.music.unpause()
-            paused = False
-            self.toggle_buttons()
-
-    def pause_music(self):
-        global paused
-        pygame.mixer.music.pause()
-        paused = True
+    def pause(self):
+        music = Music()
+        music.pause_music()
         self.toggle_buttons()
 
-    def skip_forward(self):
-        global current_song, paused
-
-        try:
-            selected_item = self.song_list.selection()
-            next_item = self.song_list.next(selected_item)
-            if next_item:
-                self.song_list.selection_set(next_item)
-            song_name = self.song_list.item(
-                self.song_list.selection())['values'][0]
-
-            song_full = song_name.lower() + '.mp3'
-            current_song = song_full
-            self.play_music()
-            self.toggle_buttons()
-
-        except:
-            pass
-
-    def skip_backwards(self):
-        global current_song, paused
-
-        try:
-
-            selected_item = self.song_list.selection()
-            prev_item = self.song_list.prev(selected_item)
-            if prev_item:
-                self.song_list.selection_set(prev_item)
-            song_name = self.song_list.item(
-                self.song_list.selection())['values'][0]
-
-            song_full = song_name.lower() + '.mp3'
-            current_song = song_full
-            self.play_music()
-            self.toggle_buttons()
-
-        except:
-            pass
-
-    def volume(self, value):
-        pygame.mixer.music.set_volume(value)
-
     def mute(self):
-        pygame.mixer.music.set_volume(0)
+        music = Music()
+        music.mute()
         self.toggle_muted_buttons()
 
     def unmute(self):
-        pygame.mixer.music.set_volume(.5)
+        music = Music()
+        music.unmute()
         self.toggle_muted_buttons()
 
-    def progress(self):
-        a = pygame.mixer.Sound(f"{os.path.join(self.directory, current_song)}")
-        song_len = a.get_length() * 10
-        for i in range(0, math.ceil(song_len)):
-            time.sleep(.3)
-            self.progress_bar.set(pygame.mixer.music.get_pos() / 1000000)
+    def volume(self, value):
+        music = Music()
+        music.volume(value)
 
-    def play_bar(self):
+    def play(self):
+        music = Music()
+        music.play()
+        self.toggle_buttons()
 
-        play_icon = ctk.CTkImage(dark_image=Image.open("./img/play.png"),
-                                 size=(25, 25))
-        self.play_button = ctk.CTkButton(self, command=self.play_music)
-        self.play_button.configure(width=1, bg_color="black", image=play_icon,
-                                   text="", text_color="black",  font=("Segoe UI", 15, "bold"),  fg_color="black")
-        self.play_button.grid(row=0, column=3, padx=(10, 350), pady=(720, 10))
+    def get_song_name(self, song_name):
+        self.song_name_label.configure(text=song_name.title(
+        ), text_color="#ffffff",  font=("Segoe UI", 20, "bold"))
 
-        pause_icon = ctk.CTkImage(dark_image=Image.open("./img/pause.png"),
-                                  size=(25, 25))
-        self.pause_button = ctk.CTkButton(self, command=self.pause_music)
-        self.pause_button.configure(width=1, bg_color="black", image=pause_icon,
-                                    text="", text_color="black",  font=("Segoe UI", 15, "bold"),  fg_color="black")
+        self.song_name_label.grid_remove()
+        self.song_name_label.grid(
+            row=0, column=0, padx=(10, 10), pady=(720, 10))
 
-        skip_f_icon = ctk.CTkImage(dark_image=Image.open("./img/fast-forward.png"),
-                                   size=(25, 25))
-        self.skip_f_button = ctk.CTkButton(self, command=self.skip_forward)
-        self.skip_f_button.configure(width=1, bg_color="black",
-                                     text="", text_color="black", image=skip_f_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
-        self.skip_f_button.grid(
-            row=0, column=3, padx=(10, 260), pady=(720, 10))
 
-        skip_b_icon = ctk.CTkImage(dark_image=Image.open("./img/fast-backward.png"),
-                                   size=(25, 25))
-        self.skip_b_button = ctk.CTkButton(self, command=self.skip_backwards)
-        self.skip_b_button.configure(width=1, bg_color="black",
-                                     text="", text_color="black", image=skip_b_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
-        self.skip_b_button.grid(
-            row=0, column=3, padx=(10, 440), pady=(720, 10))
+class App(ctk.CTk):
 
-        speaker_icon = ctk.CTkImage(dark_image=Image.open("./img/speaker.png"),
-                                    size=(25, 25))
-        self.mute_button = ctk.CTkButton(self, command=self.mute)
-        self.mute_button.configure(width=1, bg_color="black",
-                                   text="", text_color="black", image=speaker_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
-        self.mute_button.grid(
-            row=0, column=3, padx=(400, 10), pady=(720, 10))
+    main_color = "#1b1b1b"
+    text_color = "#ffffff"
 
-        muted_icon = ctk.CTkImage(dark_image=Image.open("./img/muted_speaker.png"),
-                                  size=(25, 25))
+    def __init__(self):
+        super().__init__()
+        self.counter = 0
 
-        self.unmute_button = ctk.CTkButton(self, command=self.unmute)
-        self.unmute_button.configure(width=1, bg_color="black",
-                                     text="", text_color="black", image=muted_icon, font=("Segoe UI", 15, "bold"),  fg_color="black")
-
-        self.slider = ctk.CTkSlider(self, from_=0, to=1, command=self.volume)
-        self.slider.configure(button_color="#ffffff")
-        self.slider.grid(row=0, column=3, padx=(650, 10), pady=(720, 10))
-
-        self.progress_bar = ctk.CTkProgressBar(
-            self, progress_color='#ffffff', width=250, height=5)
-        self.progress_bar.grid(row=0, column=3, padx=(10, 340), pady=(780, 10))
+        self.title("Music Player")
+        self.geometry("1350x810")
+        self.resizable(0, 0)
+        self.configure(fg_color="Black")
+        create__directory_table()
+        create_songs_table()
+        create_recently_played_table()
+        create_playlist_name_table()
+        create_queue_table()
+        add_to_queue()
+        self.search_frame_method()
+        self.my_music_frame()
+        self.my_music_songs()
+        self.menu_frame_method()
+        self.add_songs()
 
     def search_frame_method(self):
         self.search_frame = FrameBuilder(self)
@@ -369,7 +311,7 @@ class App(ctk.CTk):
             10, 500), pady=(10, 665))
 
         self.divisor = ctk.CTkProgressBar(
-            self, progress_color="#4a4d50", width=1010, height=5)
+            self, progress_color="#878787", width=1010, height=5, bg_color="#878787", fg_color="#878787", border_color="#878787")
         self.divisor.grid(row=0, column=3, padx=(
             0, 10), pady=(10, 620))
 
@@ -405,21 +347,14 @@ class App(ctk.CTk):
         self.style.theme_use('equilux')
 
         self.song_list_frame = ctk.CTkScrollableFrame(
-            self, bg_color=self.main_color, border_color='black', fg_color=self.main_color, border_width=1)
+            self, bg_color=self.main_color, border_color=self.main_color, fg_color=self.main_color, border_width=1)
         self.song_list_frame.configure(
             width=980, height=560)
         self.song_list_frame.grid(
             row=0, column=3, padx=(0, 10), pady=(135, 100))
 
-        add_to_frame = AddToFrame(
-            self, self.song_list_frame, self.main_color, self.text_color)
-        add_to_frame.set_values(
-            'Dispara', 'Nicki Nicole', 'Trap', 'Alma', '2:45')
-        add_to_frame.set_display(1)
-        add_to_frame.get_name()
-
         self.select_folder_button = ctk.CTkButton(
-            self, command=self.load_music)
+            self)
         self.select_folder_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                             text="Select Folder", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.select_folder_button.grid(row=0, column=3, padx=(
@@ -429,8 +364,6 @@ class App(ctk.CTk):
             self, progress_color=self.main_color, width=1010, height=2, bg_color=self.main_color, fg_color=self.main_color, border_color=self.main_color)
         self.fill.grid(row=0, column=3, padx=(
             0, 10), pady=(10, 615))
-
-        self.load_music()
 
     def my_music_artist(self):
         self.music_artist_frame = FrameBuilder(self)
@@ -519,8 +452,6 @@ class App(ctk.CTk):
         self.recently_played.config(displaycolumns=(
             'Song Name', 'Format', 'Artist', 'Gender'))
 
-        self.load_recently_played()
-
     def playing_now_frame(self):
         self.main_frame = FrameBuilder(self)
         self.main_frame.configure(
@@ -572,6 +503,22 @@ class App(ctk.CTk):
         self.settings_label.grid(
             row=0, column=3, padx=(10, 820), pady=(10, 720))
 
+    def add_songs(self):
+        counter = NumberCounter()
+
+        for song in get_song():
+            song = str(song)
+            song = song.strip("[]")
+            song = song.strip(",")
+            song = song.strip("'")
+            song = song[:-4]
+            print(song)
+
+            add_to_frame = AddToFrame(
+                self, self.song_list_frame, self.main_color, self.text_color)
+            add_to_frame.set_values(song.title())
+            add_to_frame.set_display(counter.increase_counter())
+
 
 class AddToFrame(ctk.CTkButton):
     def __init__(self, master, frame, main_color, text_color):
@@ -579,6 +526,11 @@ class AddToFrame(ctk.CTkButton):
         self.frame = frame
         self.main_color = main_color
         self.text_color = text_color
+        self.song_name_label = ctk.CTkButton(self.frame)
+        self.song_artist_label = ctk.CTkButton(self.frame)
+        self.song_album_label = ctk.CTkButton(self.frame)
+        self.song_gender_label = ctk.CTkButton(self.frame)
+        self.song_duration_label = ctk.CTkButton(self.frame)
         self.song_name_button = ctk.CTkButton(self.frame)
         self.song_artist_button = ctk.CTkButton(self.frame)
         self.song_album_button = ctk.CTkButton(self.frame)
@@ -588,32 +540,31 @@ class AddToFrame(ctk.CTkButton):
         self.separator2 = ctk.CTkButton(self.frame)
         self.separator3 = ctk.CTkButton(self.frame)
         self.separator4 = ctk.CTkButton(self.frame)
-        self.song_name_label = ctk.CTkLabel(self.frame)
-        self.song_artist_label = ctk.CTkLabel(self.frame)
-        self.song_album_label = ctk.CTkLabel(self.frame)
-        self.song_gender_label = ctk.CTkLabel(self.frame)
-        self.song_duration_label = ctk.CTkLabel(self.frame)
+        self.separator5 = ctk.CTkButton(self.frame)
+        self.play_bar = PlayBar(master)
+        self.play_bar.play_bar()
 
-    def set_values(self, song_name, song_artist, song_gender, song_album, song_duration):
-
+    def set_values(self, song_name, song_artist='Unknown', song_gender='Unknown', song_album='Unknown', song_duration='Unknown'):
         self.song_name = song_name
+
         self.song_name_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                        text=song_name, text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+                                        text=song_name, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color, command=self.get_song_name)
 
         self.song_artist_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                          text=song_artist, text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+                                          text=song_artist, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
         self.song_gender_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                          text=song_gender, text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+                                          text=song_gender, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
         self.song_album_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                         text=song_album, text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+                                         text=song_album, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
         self.song_duration_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                             text=song_duration, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
     def add_spaces(self, row):
-        self.separator1.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+
+        self.separator1.configure(width=1, bg_color=self.main_color,
                                   text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
         self.separator2.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                   text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
@@ -621,48 +572,61 @@ class AddToFrame(ctk.CTkButton):
                                   text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
         self.separator4.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                   text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
-        self.separator1.grid(column=1, row=row, padx=(100, 50))
-        self.separator2.grid(column=3, row=row, padx=(100, 50))
-        self.separator3.grid(column=5, row=row, padx=(100, 50))
-        self.separator4.grid(column=7, row=row, padx=(100, 50))
+        self.separator5.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                  text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        self.separator1.grid(column=1, row=row, padx=(50, 50), pady=(0))
+        self.separator2.grid(column=3, row=row, padx=(50, 50), pady=(0))
+        self.separator3.grid(column=5, row=row, padx=(50, 50), pady=(0))
+        self.separator4.grid(column=7, row=row, padx=(50, 50), pady=(0))
 
     def add_labels(self):
-        self.song_name_label.configure(width=1, bg_color=self.main_color,
+        self.song_name_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                        text='Song name', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
 
-        self.song_artist_label.configure(width=1, bg_color=self.main_color,
+        self.song_artist_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                          text='Artist', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
 
-        self.song_gender_label.configure(width=1, bg_color=self.main_color,
+        self.song_gender_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                          text='Gender', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
 
-        self.song_album_label.configure(width=1, bg_color=self.main_color,
+        self.song_album_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                         text='Album', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
 
-        self.song_duration_label.configure(width=1, bg_color=self.main_color,
-                                           text='Duration', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        self.song_duration_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                           text='Duration', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
 
-        self.song_name_button.grid(column=0, row=0, padx=(1, 1))
-        self.song_artist_button.grid(column=2, row=0, padx=(1, 1))
-        self.song_album_button.grid(column=4, row=0, padx=(1, 1))
-        self.song_gender_button.grid(column=6, row=0, padx=(1, 1))
-        self.song_duration_button.grid(column=10, row=0, padx=(1, 1))
+        self.song_name_label.grid(column=0, row=0, padx=(1, 1))
+        self.song_artist_label.grid(column=2, row=0, padx=(1, 1))
+        self.song_album_label.grid(column=4, row=0, padx=(1, 1))
+        self.song_gender_label.grid(column=6, row=0, padx=(1, 1))
+        self.song_duration_label.grid(column=10, row=0, padx=(1, 1))
 
         self.add_spaces(0)
 
     def set_display(self, row):
         self.add_labels()
 
-        self.song_name_button.grid(column=0, row=row, padx=(1, 1))
-        self.song_artist_button.grid(column=2, row=row, padx=(1, 1))
-        self.song_album_button.grid(column=4, row=row, padx=(1, 1))
-        self.song_gender_button.grid(column=6, row=row, padx=(1, 1))
-        self.song_duration_button.grid(column=10, row=row, padx=(1, 1))
+        self.song_name_button.grid(
+            column=0, row=row, padx=(1, 1), pady=(0))
+        self.song_artist_button.grid(
+            column=2, row=row, padx=(1, 1), pady=(0))
+        self.song_album_button.grid(
+            column=4, row=row, padx=(1, 1), pady=(0))
+        self.song_gender_button.grid(
+            column=6, row=row, padx=(1, 1), pady=(0))
+        self.song_duration_button.grid(
+            column=10, row=row, padx=(1, 1), pady=(0))
 
         self.add_spaces(row)
 
-    def get_name(self):
-        print(self.song_name)
+    def get_song_name(self):
+
+        music = Music()
+        self.play_bar.get_song_name(self.song_name)
+
+        music.load_music_to_play(self.song_name)
+        music.play()
+        self.play_bar.toggle_buttons()
 
 
 app = App()
