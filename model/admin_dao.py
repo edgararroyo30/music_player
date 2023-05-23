@@ -247,3 +247,27 @@ def add_song_to_playlist(song_name, playlist_name):
 
     connect.cursor.execute(sql)
     connect.close()
+
+
+def add_to_queue():
+    connect = ConnectDB()
+
+    sql = '''SELECT * FROM queue'''
+
+    connect.cursor.execute(sql)
+    exists = connect.cursor.fetchone()
+
+    if exists is None:
+        for song in get_song():
+            sql_add = f'''INSERT INTO queue(song_in_queue) VALUES ('{song}')'''
+            connect.cursor.execute(sql_add)
+        connect.close()
+
+    else:
+        sql_delete = '''DELETE FROM queue'''
+        connect.cursor.execute(sql_delete)
+
+        for song in get_song():
+            sql_add = f'''INSERT INTO queue(song_in_queue) VALUES ('{song}')'''
+            connect.cursor.execute(sql_add)
+        connect.close()
