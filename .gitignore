@@ -3,4 +3,4 @@ virtual/
 music/
 .vscode/
 database/
-model/__pycache__
+__pycache__
