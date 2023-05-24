@@ -52,6 +52,11 @@ class Music():
     def unmute(self):
         pygame.mixer.music.set_volume(.5)
 
+    def get_current_song(self):
+        global current_song
+
+        return current_song
+
     def read_queue(self):
         global current_song
         playing_next_id = []
@@ -71,10 +76,4 @@ class Music():
 
         playing_next = apply_format.iterate(playing_next)
 
-        for song in playing_next:
-            add_to_playing_next(song)
-
-        print(lista)
-        print(song_id)
-        print(playing_next_id)
-        print(playing_next)
+        add_to_playing_next(playing_next)
