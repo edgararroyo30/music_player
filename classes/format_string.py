@@ -1,5 +1,8 @@
 class FormatString:
 
+    def __init__(self):
+        pass
+
     def iterate(self, argument):
         list = []
         for string in argument:
@@ -46,5 +49,13 @@ class FormatString:
             string = string.strip("()")
             string = string.strip(",")
             string = string.strip("'")
+
+        elif level == 5:
+            string = string.strip("[]")
+            string = string.strip("()")
+            string = string.strip(",")
+            string = string.strip("'")
+            if string[-1] == '3':
+                string = string[:-4]
 
         return string
