@@ -1,4 +1,5 @@
 from client.app import App
+from model.admin_db import Admin
 
 
 def main():
@@ -7,4 +8,5 @@ def main():
 
 
 if __name__ == '__main__':
+    Admin()
     main()
