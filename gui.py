@@ -9,12 +9,67 @@ import pygame
 from PIL import Image
 import customtkinter as ctk
 from model.admin_dao import save_directory, get_directory
-from model.admin_dao import create_songs_table, create__directory_table, save_songs
+from model.admin_dao import create_songs_table, create__directory_table
 from model.admin_dao import create_recently_played_table
 from model.admin_dao import create_playlist_name_table, create_queue_table, get_song, add_to_queue
+from model.admin_dao import get_queue_songs_id, get_playing_song_id, get_playing_next_song
+from model.admin_dao import create_playing_next_table, create_playing_back_table
+from model.admin_dao import add_to_playing_next, play_next, play_back
 
 current_song = ''
 paused = False
+
+
+class FormatString:
+
+    def iterate(self, argument):
+        list = []
+        for string in argument:
+            string = str(string)
+            string = string.strip("[]")
+            string = string.strip("()")
+            string = string.strip(",")
+            string = string.strip("'")
+
+            list.append(string)
+
+        return list
+
+    def iterate_first_value(self, argument):
+        list = []
+        for value in argument:
+            value1, value2 = value
+            list.append(value1)
+        return list
+
+    def iterate_second_value(self, argument):
+        list = []
+        for value in argument:
+            value1, value2 = value
+            list.append(value2)
+
+        return list
+
+    def format(self, string, level):
+        string = str(string)
+        if level == 1:
+            string = string.strip("[]")
+        elif level == 2:
+            string = string.strip("[]")
+            string = string.strip("()")
+
+        elif level == 3:
+            string = string.strip("[]")
+            string = string.strip("()")
+            string = string.strip(",")
+
+        elif level == 4:
+            string = string.strip("[]")
+            string = string.strip("()")
+            string = string.strip(",")
+            string = string.strip("'")
+
+        return string
 
 
 class NumberCounter:
@@ -23,7 +78,6 @@ class NumberCounter:
 
     def increase_counter(self):
         self.counter += 2
-        print(f"Counter value: {self.counter}")
 
 
 class Music():
@@ -35,8 +89,10 @@ class Music():
 
     def load_music_to_play(self, song_name):
         global current_song
+        set_format = FormatString()
+        song_name = set_format.format(song_name, 4)
 
-        song_full = song_name.lower() + '.mp3'
+        song_full = song_name.lower()
         current_song = song_full
 
     def play(self):
@@ -66,6 +122,33 @@ class Music():
     def unmute(self):
         pygame.mixer.music.set_volume(.5)
 
+    def read_queue(self):
+        global current_song
+        playing_next_id = []
+        playing_next = []
+
+        apply_format = FormatString()
+        lista = apply_format.iterate(get_queue_songs_id())
+        song_id = apply_format.format(get_playing_song_id(current_song), 3)
+
+        for value in lista:
+            if value > song_id:
+                playing_next_id.append(value)
+
+        for value2 in playing_next_id:
+            song = get_playing_next_song(value2)
+            playing_next.append(song)
+
+        playing_next = apply_format.iterate(playing_next)
+
+        for song in playing_next:
+            add_to_playing_next(song)
+
+        print(lista)
+        print(song_id)
+        print(playing_next_id)
+        print(playing_next)
+
 
 class FrameBuilder(ctk.CTkFrame):
     def __init__(self, master):
@@ -77,7 +160,7 @@ class PlayBar():
         self.frame = frame
         self.play_button = ctk.CTkButton(self.frame, command=self.play)
         self.pause_button = ctk.CTkButton(self.frame, command=self.pause)
-        self.skip_f_button = ctk.CTkButton(self.frame)
+        self.skip_f_button = ctk.CTkButton(self.frame, command=self.skip_f)
         self.skip_b_button = ctk.CTkButton(self.frame)
         self.mute_button = ctk.CTkButton(self.frame, command=self.mute)
         self.unmute_button = ctk.CTkButton(self.frame, command=self.unmute)
@@ -192,6 +275,20 @@ class PlayBar():
         self.song_name_label.grid(
             row=0, column=0, padx=(10, 10), pady=(720, 10))
 
+    def skip_f(self):
+        music = Music()
+
+        new_song = play_next()
+        music.load_music_to_play(new_song)
+        music.play()
+
+    def skip_b(self):
+        music = Music()
+
+        new_song = play_back()
+        music.load_music_to_play(new_song)
+        music.play()
+
 
 class App(ctk.CTk):
 
@@ -211,12 +308,13 @@ class App(ctk.CTk):
         create_recently_played_table()
         create_playlist_name_table()
         create_queue_table()
+        create_playing_back_table()
+        create_playing_next_table()
         add_to_queue()
         self.search_frame_method()
         self.my_music_frame()
         self.my_music_songs()
         self.menu_frame_method()
-        self.add_songs()
 
     def search_frame_method(self):
         self.search_frame = FrameBuilder(self)
@@ -328,42 +426,66 @@ class App(ctk.CTk):
         self.random_play_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                           text="Shuffle all", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.random_play_button.grid(row=0, column=3, padx=(
-            10, 855), pady=(10, 580))
+            10, 870), pady=(10, 580))
 
         self.order_by_button = ctk.CTkButton(self)
         self.order_by_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                        text="Order by:", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.order_by_button.grid(row=0, column=3, padx=(
-            10, 660), pady=(10, 580))
+            10, 670), pady=(10, 580))
 
         self.gender_button = ctk.CTkButton(self)
         self.gender_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                      text="Gender:", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.gender_button.grid(row=0, column=3, padx=(
-            10, 500), pady=(10, 580))
+            10, 350), pady=(10, 580))
 
         self.style = ThemedStyle(self)
         self.style.set_theme("equilux")
         self.style.theme_use('equilux')
 
+        self.song_name_button = ctk.CTkButton(self)
+        self.song_name_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                        text="Song name", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+        self.song_name_button.grid(row=0, column=3, padx=(
+            10, 815), pady=(10, 520))
+
+        self.song_artist_button = ctk.CTkButton(self)
+        self.song_artist_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text="Artist", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+        self.song_artist_button.grid(row=0, column=3, padx=(
+            10, 400), pady=(10, 520))
+
+        self.song_album_button = ctk.CTkButton(self)
+        self.song_album_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                         text="Album", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+        self.song_album_button.grid(row=0, column=3, padx=(
+            10, 20), pady=(10, 520))
+
+        self.song_gender_button = ctk.CTkButton(self)
+        self.song_gender_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                          text="Gender", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+        self.song_gender_button.grid(row=0, column=3, padx=(
+            380, 10), pady=(10, 520))
+
+        self.song_duration_button = ctk.CTkButton(self)
+        self.song_duration_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                            text="Duration", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+        self.song_duration_button.grid(row=0, column=3, padx=(
+            760, 10), pady=(10, 520))
+
         self.song_list_frame = ctk.CTkScrollableFrame(
             self, bg_color=self.main_color, border_color=self.main_color, fg_color=self.main_color, border_width=1)
         self.song_list_frame.configure(
-            width=980, height=560)
+            width=980, height=530)
         self.song_list_frame.grid(
-            row=0, column=3, padx=(0, 10), pady=(135, 100))
-
-        self.select_folder_button = ctk.CTkButton(
-            self)
-        self.select_folder_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                            text="Select Folder", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
-        self.select_folder_button.grid(row=0, column=3, padx=(
-            10, 10), pady=(10, 580))
+            row=0, column=3, padx=(0, 10), pady=(140, 80))
 
         self.fill = ctk.CTkProgressBar(
             self, progress_color=self.main_color, width=1010, height=2, bg_color=self.main_color, fg_color=self.main_color, border_color=self.main_color)
         self.fill.grid(row=0, column=3, padx=(
             0, 10), pady=(10, 615))
+        self.add_songs()
 
     def my_music_artist(self):
         self.music_artist_frame = FrameBuilder(self)
@@ -512,7 +634,6 @@ class App(ctk.CTk):
             song = song.strip(",")
             song = song.strip("'")
             song = song[:-4]
-            print(song)
 
             add_to_frame = AddToFrame(
                 self, self.song_list_frame, self.main_color, self.text_color)
@@ -523,15 +644,19 @@ class App(ctk.CTk):
 class AddToFrame(ctk.CTkButton):
     def __init__(self, master, frame, main_color, text_color):
         super().__init__(master)
-        self.frame = frame
+        self.main_frame = frame
+        self.frame = FrameBuilder(self.main_frame)
         self.main_color = main_color
         self.text_color = text_color
+        self.frame.configure(
+            width=50, height=50, fg_color=self.main_color)
         self.song_name_label = ctk.CTkButton(self.frame)
         self.song_artist_label = ctk.CTkButton(self.frame)
         self.song_album_label = ctk.CTkButton(self.frame)
         self.song_gender_label = ctk.CTkButton(self.frame)
         self.song_duration_label = ctk.CTkButton(self.frame)
-        self.song_name_button = ctk.CTkButton(self.frame)
+        self.song_name_button = ctk.CTkButton(
+            self.frame,  command=self.get_song_name)
         self.song_artist_button = ctk.CTkButton(self.frame)
         self.song_album_button = ctk.CTkButton(self.frame)
         self.song_gender_button = ctk.CTkButton(self.frame)
@@ -543,12 +668,13 @@ class AddToFrame(ctk.CTkButton):
         self.separator5 = ctk.CTkButton(self.frame)
         self.play_bar = PlayBar(master)
         self.play_bar.play_bar()
+        self.play_bar.toggle_buttons()
 
     def set_values(self, song_name, song_artist='Unknown', song_gender='Unknown', song_album='Unknown', song_duration='Unknown'):
         self.song_name = song_name
 
         self.song_name_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                        text=song_name, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color, command=self.get_song_name)
+                                        text=song_name, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
         self.song_artist_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                           text=song_artist, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
@@ -562,7 +688,27 @@ class AddToFrame(ctk.CTkButton):
         self.song_duration_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                             text=song_duration, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
-    def add_spaces(self, row):
+    def add_spaces(self):
+        name = self.song_name
+        length = len(name.strip())
+
+        if length < 8:
+            padx1 = (50, 100)
+            padx2 = (50, 50)
+            padx3 = (50, 50)
+            padx4 = (50, 50)
+
+        elif length > 15:
+            padx1 = (30, 25)
+            padx2 = (99, 2)
+            padx3 = (89, 10)
+            padx4 = (40, 60)
+
+        else:
+            padx1 = (50, 50)
+            padx2 = (50, 50)
+            padx3 = (50, 50)
+            padx4 = (50, 50)
 
         self.separator1.configure(width=1, bg_color=self.main_color,
                                   text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
@@ -574,59 +720,46 @@ class AddToFrame(ctk.CTkButton):
                                   text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
         self.separator5.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                   text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
-        self.separator1.grid(column=1, row=row, padx=(50, 50), pady=(0))
-        self.separator2.grid(column=3, row=row, padx=(50, 50), pady=(0))
-        self.separator3.grid(column=5, row=row, padx=(50, 50), pady=(0))
-        self.separator4.grid(column=7, row=row, padx=(50, 50), pady=(0))
-
-    def add_labels(self):
-        self.song_name_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                       text='Song name', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
-
-        self.song_artist_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                         text='Artist', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
-
-        self.song_gender_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                         text='Gender', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
-
-        self.song_album_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                        text='Album', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
-
-        self.song_duration_label.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                           text='Duration', text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
-
-        self.song_name_label.grid(column=0, row=0, padx=(1, 1))
-        self.song_artist_label.grid(column=2, row=0, padx=(1, 1))
-        self.song_album_label.grid(column=4, row=0, padx=(1, 1))
-        self.song_gender_label.grid(column=6, row=0, padx=(1, 1))
-        self.song_duration_label.grid(column=10, row=0, padx=(1, 1))
-
-        self.add_spaces(0)
+        self.separator1.grid(column=1, row=0, padx=padx1, pady=(0))
+        self.separator2.grid(column=3, row=0, padx=padx2, pady=(0))
+        self.separator3.grid(column=5, row=0, padx=padx3, pady=(0))
+        self.separator4.grid(column=7, row=0, padx=padx4, pady=(0))
 
     def set_display(self, row):
-        self.add_labels()
+        name = self.song_name
+        length = len(name.strip())
+
+        if length < 8:
+            padx = (50, 0)
+
+        else:
+            padx = (50, 0)
+
+        self.frame.grid(
+            column=0, row=row, padx=(0, 0), pady=(0))
 
         self.song_name_button.grid(
-            column=0, row=row, padx=(1, 1), pady=(0))
+            column=0, row=0, padx=padx, pady=(0))
         self.song_artist_button.grid(
-            column=2, row=row, padx=(1, 1), pady=(0))
+            column=2, row=0, padx=(0, 0), pady=(0))
         self.song_album_button.grid(
-            column=4, row=row, padx=(1, 1), pady=(0))
+            column=4, row=0, padx=(0, 0), pady=(0))
         self.song_gender_button.grid(
-            column=6, row=row, padx=(1, 1), pady=(0))
+            column=6, row=0, padx=(0, 0), pady=(0))
         self.song_duration_button.grid(
-            column=10, row=row, padx=(1, 1), pady=(0))
+            column=10, row=0, padx=(0, 0), pady=(0))
 
-        self.add_spaces(row)
+        self.add_spaces()
 
     def get_song_name(self):
 
         music = Music()
+        name = self.song_name + '.mp3'
         self.play_bar.get_song_name(self.song_name)
 
-        music.load_music_to_play(self.song_name)
+        music.load_music_to_play(name)
         music.play()
-        self.play_bar.toggle_buttons()
+        music.read_queue()
 
 
 app = App()
