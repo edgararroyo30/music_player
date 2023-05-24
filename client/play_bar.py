@@ -2,6 +2,7 @@ import customtkinter as ctk
 from PIL import Image
 from classes.music import Music
 from model.playing_back_next_db import play_back, play_next
+from classes.format_string import FormatString
 
 
 class PlayBar():
@@ -10,7 +11,7 @@ class PlayBar():
         self.play_button = ctk.CTkButton(self.frame, command=self.play)
         self.pause_button = ctk.CTkButton(self.frame, command=self.pause)
         self.skip_f_button = ctk.CTkButton(self.frame, command=self.skip_f)
-        self.skip_b_button = ctk.CTkButton(self.frame)
+        self.skip_b_button = ctk.CTkButton(self.frame, command=self.skip_b)
         self.mute_button = ctk.CTkButton(self.frame, command=self.mute)
         self.unmute_button = ctk.CTkButton(self.frame, command=self.unmute)
         self.slider = ctk.CTkSlider(
@@ -117,19 +118,22 @@ class PlayBar():
         self.toggle_buttons()
 
     def get_song_name(self, song_name):
+        give_format = FormatString()
+        song_name = give_format.format(song_name, 5)
+        self.song_name_label.grid_remove()
         self.song_name_label.configure(text=song_name.title(
         ), text_color="#ffffff",  font=("Segoe UI", 20, "bold"))
-
-        self.song_name_label.grid_remove()
         self.song_name_label.grid(
             row=0, column=0, padx=(10, 10), pady=(720, 10))
 
     def skip_f(self):
         music = Music()
+        current_song = music.get_current_song()
 
-        new_song = play_next()
+        new_song = play_next(current_song)
         music.load_music_to_play(new_song)
         music.play()
+        self.get_song_name(new_song)
 
     def skip_b(self):
         music = Music()
@@ -137,3 +141,4 @@ class PlayBar():
         new_song = play_back()
         music.load_music_to_play(new_song)
         music.play()
+        self.get_song_name(new_song)
