@@ -32,8 +32,6 @@ class Music():
                 get_directory(), current_song))
             pygame.mixer.music.play()
 
-            print(os.path.join(get_directory(), current_song))
-
         else:
             pygame.mixer.music.unpause()
             paused = False
