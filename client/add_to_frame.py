@@ -2,6 +2,8 @@ import customtkinter as ctk
 from client.frame_builder import FrameBuilder
 from client.play_bar import PlayBar
 from classes.music import Music
+from client.song_data import SongData
+import tkinter as tk
 
 
 class AddToFrame(ctk.CTkButton):
@@ -30,8 +32,24 @@ class AddToFrame(ctk.CTkButton):
         self.separator4 = ctk.CTkButton(self.frame)
         self.separator5 = ctk.CTkButton(self.frame)
         self.play_bar = PlayBar(master)
+
+        self.song_menu = tk.Menu(self.frame, tearoff=0)
+        self.song_menu.add_command(label="Play Song")
+        self.song_menu.add_command(label="Go to Artist")
+        self.song_menu.add_command(label="Go to Album")
+        self.song_menu.add_command(label="Edit", command=self.load_dong_data)
+        self.artist_menu = tk.Menu(self.frame, tearoff=0)
+        self.artist_menu.add_command(label="Go to Artist")
+        self.artist_menu.add_command(label="Edit")
+        self.album_menu = tk.Menu(self.frame, tearoff=0)
+        self.album_menu.add_command(label="Go to Album")
+        self.album_menu.add_command(label="Edit")
+
         self.play_bar.play_bar()
         self.play_bar.toggle_buttons()
+        self.song_artist_button.bind("<Button-3>", self.show_artist_menu)
+        self.song_album_button.bind("<Button-3>", self.show_album_menu)
+        self.song_name_button.bind("<Button-3>", self.show_song_menu)
 
     def set_values(self, song_name, song_artist='Unknown', song_gender='Unknown', song_album='Unknown', song_duration='Unknown'):
         self.song_name = song_name
@@ -73,7 +91,7 @@ class AddToFrame(ctk.CTkButton):
             padx3 = (50, 50)
             padx4 = (50, 50)
 
-        self.separator1.configure(width=1, bg_color=self.main_color,
+        self.separator1.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                   text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
         self.separator2.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                   text='', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
@@ -123,3 +141,15 @@ class AddToFrame(ctk.CTkButton):
         music.load_music_to_play(name)
         music.play()
         music.read_queue()
+
+    def show_artist_menu(self, event):
+        self.artist_menu.post(event.x_root, event.y_root)
+
+    def show_album_menu(self, event):
+        self.album_menu.post(event.x_root, event.y_root)
+
+    def show_song_menu(self, event):
+        self.song_menu.post(event.x_root, event.y_root)
+
+    def load_dong_data(self):
+        SongData(self.song_name)
