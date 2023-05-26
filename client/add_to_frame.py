@@ -34,10 +34,11 @@ class AddToFrame(ctk.CTkButton):
         self.play_bar = PlayBar(master)
 
         self.song_menu = tk.Menu(self.frame, tearoff=0)
-        self.song_menu.add_command(label="Play Song")
+        self.song_menu.add_command(
+            label="Play Song", command=self.get_song_name)
         self.song_menu.add_command(label="Go to Artist")
         self.song_menu.add_command(label="Go to Album")
-        self.song_menu.add_command(label="Edit", command=self.load_dong_data)
+        self.song_menu.add_command(label="Edit", command=self.load_song_data)
         self.artist_menu = tk.Menu(self.frame, tearoff=0)
         self.artist_menu.add_command(label="Go to Artist")
         self.artist_menu.add_command(label="Edit")
@@ -151,5 +152,5 @@ class AddToFrame(ctk.CTkButton):
     def show_song_menu(self, event):
         self.song_menu.post(event.x_root, event.y_root)
 
-    def load_dong_data(self):
+    def load_song_data(self):
         SongData(self.song_name)
