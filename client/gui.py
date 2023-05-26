@@ -1,5 +1,3 @@
-
-from tkinter import ttk
 import tkinter as tk
 from PIL import Image
 import customtkinter as ctk
@@ -148,9 +146,9 @@ class Gui():
 
         self.song_name_button = ctk.CTkButton(self.frame)
         self.song_name_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                        text="Song name", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+                                        text="Song title", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.song_name_button.grid(row=0, column=3, padx=(
-            10, 815), pady=(10, 520))
+            10, 825), pady=(10, 520))
 
         self.song_artist_button = ctk.CTkButton(self.frame)
         self.song_artist_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
@@ -166,9 +164,9 @@ class Gui():
 
         self.song_gender_button = ctk.CTkButton(self.frame)
         self.song_gender_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                          text="Gender", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
+                                          text="Genre", text_color=self.text_color,  font=("Segoe UI", 15, "bold"),  fg_color=self.main_color)
         self.song_gender_button.grid(row=0, column=3, padx=(
-            380, 10), pady=(10, 520))
+            370, 10), pady=(10, 520))
 
         self.song_duration_button = ctk.CTkButton(self.frame)
         self.song_duration_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
