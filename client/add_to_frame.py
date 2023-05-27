@@ -1,3 +1,7 @@
+"""
+Create the list of songs and all interface options related to it
+"""
+
 import customtkinter as ctk
 from client.frame_builder import FrameBuilder
 from client.play_bar import PlayBar
@@ -7,6 +11,10 @@ import tkinter as tk
 
 
 class AddToFrame(ctk.CTkButton):
+    """
+    Frame, main_color, text_color
+    """
+
     def __init__(self, master, frame, main_color, text_color):
         super().__init__(master)
         self.main_frame = frame
@@ -53,6 +61,10 @@ class AddToFrame(ctk.CTkButton):
         self.song_name_button.bind("<Button-3>", self.show_song_menu)
 
     def set_values(self, song_name, song_artist='Unknown', song_gender='Unknown', song_album='Unknown', song_duration='Unknown'):
+        """
+        Recieve the names for each label.
+        With that dta can infer the gender, album and artist
+        """
         self.song_name = song_name
 
         self.song_name_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
@@ -71,6 +83,9 @@ class AddToFrame(ctk.CTkButton):
                                             text=song_duration, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
     def add_spaces(self):
+        """
+        Create the spaces needed for the label to display
+        """
         name = self.song_name
         length = len(name.strip())
 
@@ -108,6 +123,9 @@ class AddToFrame(ctk.CTkButton):
         self.separator4.grid(column=7, row=0, padx=padx4, pady=(0))
 
     def set_display(self, row):
+        """
+        Set the label into the frame
+        """
         name = self.song_name
         length = len(name.strip())
 
@@ -134,6 +152,10 @@ class AddToFrame(ctk.CTkButton):
         self.add_spaces()
 
     def get_song_name(self):
+        """
+        Retrieve the songname that has been given in the
+        set_values method
+        """
 
         music = Music()
         name = self.song_name + '.mp3'
@@ -144,13 +166,26 @@ class AddToFrame(ctk.CTkButton):
         music.read_queue()
 
     def show_artist_menu(self, event):
+        """
+        set the coordinates where the menu is being called
+        """
         self.artist_menu.post(event.x_root, event.y_root)
 
     def show_album_menu(self, event):
+        """
+        set the coordinates where the menu is being called
+        """
         self.album_menu.post(event.x_root, event.y_root)
 
     def show_song_menu(self, event):
+        """
+        set the coordinates where the menu is being called
+        """
         self.song_menu.post(event.x_root, event.y_root)
 
     def load_song_data(self):
+        """
+        Gives the song name to the Song Data frame class
+        """
+
         SongData(self.song_name)

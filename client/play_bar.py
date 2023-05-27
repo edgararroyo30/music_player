@@ -1,11 +1,19 @@
+"""
+Creates the playing bar and its methods
+"""
+
 import customtkinter as ctk
 from PIL import Image
 from classes.music import Music
-from model.playing_back_next_db import play_back, play_next
 from classes.format_string import FormatString
+from model.playing_back_next_db import play_back, play_next
 
 
 class PlayBar():
+    """
+    Creates the playing bar and its methods
+    """
+
     def __init__(self, frame):
         self.frame = frame
         self.play_button = ctk.CTkButton(self.frame, command=self.play)
@@ -21,6 +29,9 @@ class PlayBar():
         self.song_name_label = ctk.CTkLabel(self.frame)
 
     def play_bar(self):
+        """
+        Creates all the visual elements for the playing bar
+        """
         play_icon = ctk.CTkImage(dark_image=Image.open("./img/play.png"),
                                  size=(25, 25))
 
@@ -70,6 +81,10 @@ class PlayBar():
         self.progress_bar.grid(row=0, column=3, padx=(10, 340), pady=(780, 10))
 
     def toggle_buttons(self):
+        """
+        Allows the button of pause and play to exhange 
+        everytime the buttons are called
+        """
         if self.pause_button.winfo_ismapped():
 
             self.pause_button.grid_remove()
@@ -82,6 +97,10 @@ class PlayBar():
                 row=0, column=3, padx=(10, 350), pady=(720, 10))
 
     def toggle_muted_buttons(self):
+        """
+        Allows the button of mute and unmute to exhange 
+        everytime the buttons are called
+        """
         if self.unmute_button.winfo_ismapped():
 
             self.unmute_button.grid_remove()
@@ -94,30 +113,50 @@ class PlayBar():
                 row=0, column=3, padx=(400, 10), pady=(720, 10))
 
     def pause(self):
+        """
+        Pause the music and call the toggle:buttods method
+        """
         music = Music()
         music.pause_music()
         self.toggle_buttons()
 
     def mute(self):
+        """
+        Mute the music and call the toggle:buttods method
+        """
         music = Music()
         music.mute()
         self.toggle_muted_buttons()
 
     def unmute(self):
+        """
+        Unmute the music and call the toggle:buttods method
+        """
         music = Music()
         music.unmute()
         self.toggle_muted_buttons()
 
     def volume(self, value):
+        """
+        Recives the value of the slider and give it to the
+        music.volume method.
+        To change the volume level
+        """
         music = Music()
         music.volume(value)
 
     def play(self):
+        """
+        Play the music and call the toggle buttons method
+        """
         music = Music()
         music.play()
         self.toggle_buttons()
 
     def get_song_name(self, song_name):
+        """
+        Display the name of the song into the playing bar
+        """
         give_format = FormatString()
         song_name = give_format.format(song_name, 5)
         self.song_name_label.grid_remove()
@@ -127,18 +166,29 @@ class PlayBar():
             row=0, column=0, padx=(10, 10), pady=(720, 10))
 
     def skip_f(self):
+        """
+        Skip forward and call the toggle buttons method
+        """
         music = Music()
         current_song = music.get_current_song()
 
+        if music.give_pause_state() is True:
+            self.toggle_buttons()
+
         new_song = play_next(current_song)
         music.load_music_to_play(new_song)
-        music.play()
+        music.play_forward()
         self.get_song_name(new_song)
 
     def skip_b(self):
+        """
+        Skip backward and call the toggle buttons method
+        """
         music = Music()
+        if music.give_pause_state() is True:
+            self.toggle_buttons()
 
         new_song = play_back()
         music.load_music_to_play(new_song)
-        music.play()
+        music.play_backward()
         self.get_song_name(new_song)

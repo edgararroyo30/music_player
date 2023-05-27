@@ -1,8 +1,17 @@
+"""
+Load the song info into a toplevel frame.
+Makes the info editable
+"""
+
 import customtkinter as ctk
 from client.frame_builder import FrameBuilder
 
 
 class SongData(ctk.CTkToplevel):
+    """
+    Load the song info into a toplevel frame.
+    Makes the info editable
+    """
     text_color = "#ffffff"
     main_color = "#1b1b1b"
 
@@ -95,6 +104,9 @@ class SongData(ctk.CTkToplevel):
         self.save_button_method()
 
     def song_title_elements(self):
+        """
+        Song title label and entry
+        """
 
         self.song_title.grid(column=0, row=0, padx=(10, 550), pady=(10, 450))
         self.song_title_entry.grid(
@@ -102,6 +114,9 @@ class SongData(ctk.CTkToplevel):
         self.song_title_entry.insert(0, self.song_name)
 
     def song_artist_elements(self):
+        """
+        Song artist label and entry
+        """
 
         self.song_artist.grid(column=0, row=0, pady=(10, 450), padx=(200, 10))
         self.song_artist_entry.grid(
@@ -109,6 +124,9 @@ class SongData(ctk.CTkToplevel):
         self.song_artist_entry.insert(0, "Song artist here")
 
     def album_title_elements(self):
+        """
+        Album title label and entry
+        """
 
         self.album_title.grid(column=0, row=0, padx=(10, 535), pady=(10, 250))
         self.album_title_entry.grid(
@@ -116,6 +134,9 @@ class SongData(ctk.CTkToplevel):
         self.album_title_entry.insert(0, "Album title here")
 
     def album_artist_elements(self):
+        """
+        Album artist label and entry
+        """
 
         self.album_artist.grid(column=0, row=0, pady=(10, 250), padx=(210, 10))
         self.album_artist_entry.grid(
@@ -123,6 +144,9 @@ class SongData(ctk.CTkToplevel):
         self.album_artist_entry.insert(0, "Album artist here")
 
     def genre_elements(self):
+        """
+        Genre label and entry
+        """
 
         self.genre.grid(column=0, row=0, padx=(10, 575), pady=(0, 40))
         self.genre_entry.grid(
@@ -130,6 +154,9 @@ class SongData(ctk.CTkToplevel):
         self.genre_entry.insert(0, "Song genre here")
 
     def year_elements(self):
+        """
+        Year label and entry
+        """
 
         self.year.grid(column=0, row=0, pady=(0, 40), padx=(155, 10))
         self.year_entry.grid(
@@ -137,16 +164,28 @@ class SongData(ctk.CTkToplevel):
         self.year_entry.insert(0, "Song year here")
 
     def file_location_elements(self):
+        """
+        File location label and entry
+        """
         self.file_location_label.grid(
             column=0, row=0, padx=(10, 525), pady=(130, 0))
         self.file_location.grid(
             column=0, row=0, padx=(10, 400), pady=(180, 0))
 
     def save_button_method(self):
+        """
+        Save button grid
+        """
         self.save_button.grid(column=0, row=0, padx=(400, 10), pady=(500, 0))
 
     def cancel_button_method(self):
+        """
+        Cancel button grid
+        """
         self.cancel_button.grid(column=0, row=0, padx=(550, 10), pady=(500, 0))
 
     def close(self):
+        """
+        Closes the frame
+        """
         self.destroy()

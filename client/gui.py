@@ -1,3 +1,6 @@
+"""
+All the sections in the menu 
+"""
 import tkinter as tk
 from PIL import Image
 import customtkinter as ctk
@@ -5,16 +8,29 @@ from client.frame_builder import FrameBuilder
 from client.add_to_frame import AddToFrame
 from classes.number_counter import NumberCounter
 from model.songs_record_db import get_song
+from classes.music import Music
 
 
 class Gui():
+    """
+    Creates the main GUI
+    """
     main_color = "#1b1b1b"
     text_color = "#ffffff"
 
+    music = Music()
+
     def __init__(self, frame):
+        """
+        Stablish the frame that is given as the self.frame
+        """
         self.frame = frame
 
     def search_frame_method(self):
+        """
+        Creates the search frame and its items
+        """
+
         self.search_frame = FrameBuilder(self.frame)
         self.search_frame.configure(
             width=310, height=50, fg_color=self.main_color)
@@ -37,6 +53,9 @@ class Gui():
             250, 0), pady=(10, 700))
 
     def menu_frame_method(self):
+        """
+        Creates the menu frame and its items
+        """
         self.menu_frame = FrameBuilder(self.frame)
         self.menu_frame.configure(
             width=310, height=590, fg_color=self.main_color)
@@ -79,6 +98,9 @@ class Gui():
             10, 215), pady=(550, 10), sticky="ew")
 
     def my_music_frame(self):
+        """
+        Creates the seamy music frame and its items
+        """
         self.main_frame = FrameBuilder(self.frame)
         self.main_frame.configure(
             width=1010, height=710, fg_color=self.main_color)
@@ -117,9 +139,19 @@ class Gui():
         self.divisor.grid(row=0, column=3, padx=(
             0, 10), pady=(10, 620))
 
+        self.load_button = ctk.CTkButton(
+            self.frame, command=self.music.save_songs)
+        self.load_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                   text="Load Songs", text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        self.load_button.grid(row=0, column=3, padx=(
+            10, 10), pady=(10, 745))
+
         self.my_music_songs()
 
     def my_music_songs(self):
+        """
+        Creates the songs frame and its items
+        """
         self.music_songs_frame = FrameBuilder(self.frame)
         self.music_songs_frame.configure(
             width=1010, height=605, fg_color=self.main_color)
@@ -188,6 +220,9 @@ class Gui():
         self.add_songs()
 
     def my_music_artist(self):
+        """
+        Creates the artists frame and its items
+        """
         self.music_artist_frame = FrameBuilder(self.frame)
         self.music_artist_frame.configure(
             width=1010, height=605, fg_color=self.main_color)
@@ -207,6 +242,9 @@ class Gui():
             10, 660), pady=(10, 580))
 
     def my_music_albums(self):
+        """
+        Creates the albums frame and its items
+        """
         self.music_albums_frame = FrameBuilder(self.frame)
         self.music_albums_frame.configure(
             width=1010, height=605, fg_color=self.main_color)
@@ -231,6 +269,9 @@ class Gui():
             10, 500), pady=(10, 580))
 
     def recently_played_frame(self):
+        """
+        Creates the recently played frame and its items
+        """
         self.main_frame = FrameBuilder(self.frame)
         self.main_frame.configure(
             width=1010, height=710, fg_color=self.main_color)
@@ -257,6 +298,9 @@ class Gui():
             row=0, column=3, padx=(0, 128), pady=(10, 250))
 
     def playing_now_frame(self):
+        """
+        Creates the playing now frame and its items
+        """
         self.main_frame = FrameBuilder(self.frame)
         self.main_frame.configure(
             width=1010, height=710, fg_color=self.main_color)
@@ -270,6 +314,9 @@ class Gui():
             row=0, column=3, padx=(10, 770), pady=(10, 720))
 
     def library_frame(self):
+        """
+        Creates the library frame and its items
+        """
         self.main_frame = FrameBuilder(self.frame)
         self.main_frame.configure(
             width=1010, height=710, fg_color=self.main_color)
@@ -295,6 +342,9 @@ class Gui():
             10, 640), pady=(10, 650))
 
     def settings_frame(self):
+        """
+        Creates the settings frame and its items
+        """
         self.main_frame = FrameBuilder(self.frame)
         self.main_frame.configure(
             width=1010, height=710, fg_color=self.main_color)
@@ -308,6 +358,9 @@ class Gui():
             row=0, column=3, padx=(10, 820), pady=(10, 720))
 
     def add_songs(self):
+        """
+        Add the songs name to the listed songs frame
+        """
         counter = NumberCounter()
 
         for song in get_song():

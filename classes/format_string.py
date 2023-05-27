@@ -1,9 +1,28 @@
+"""
+Methods that helps to give format to strings.
+And convert other data types to string and modify it.
+"""
+
+
 class FormatString:
+
+    """
+    Allow auto formating for strings.
+    Mainly for list -> str
+    """
 
     def __init__(self):
         pass
 
     def iterate(self, argument):
+        """
+        Eliminate [], (), ",". " ' "
+        From tuples and create a list.
+
+        Argument:
+        argument -> List
+        """
+
         list = []
         for string in argument:
             string = str(string)
@@ -17,6 +36,14 @@ class FormatString:
         return list
 
     def iterate_first_value(self, argument):
+        """
+        Iterate a list with two values.
+        And return only the first value.
+
+        Argument:
+        argument -> List
+        """
+
         list = []
         for value in argument:
             value1, value2 = value
@@ -24,6 +51,13 @@ class FormatString:
         return list
 
     def iterate_second_value(self, argument):
+        """
+        Iterate a list with two values.
+        And return only the second value.
+
+        Argument:
+        argument -> List
+        """
         list = []
         for value in argument:
             value1, value2 = value
@@ -32,6 +66,15 @@ class FormatString:
         return list
 
     def format(self, string, level):
+        """
+        Delete elements for a listed string.
+        Level represents how many elements are striped
+
+        Arguments:
+        string -> str, list
+        level -> int
+        """
+
         string = str(string)
         if level == 1:
             string = string.strip("[]")

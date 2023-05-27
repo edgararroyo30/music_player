@@ -1,3 +1,7 @@
+"""
+Stores admin level methods, recomenden for maintainnance only
+"""
+
 from model.directory_db import create__directory_table
 from model.playing_back_next_db import create_playing_back_table, create_playing_next_table
 from model.playlist_db import create_playlist_name_table
@@ -6,7 +10,11 @@ from model.recently_played_db import create_recently_played_table
 from model.songs_record_db import create_songs_table
 
 
-class Admin:
+class CreateTables:
+    """
+    Creates all the tables for the database
+    """
+
     def __init__(self):
         self.create_tables()
 

@@ -1,7 +1,23 @@
+"""
+Methods for directory interaction.
+create_directory_table: Creates the table
+save_directory: Save a given directory path
+check_existance: Check if a directory exists in the table
+get_directory: Retrieves the directory path
+"""
+
 from model.db_conection import ConnectDB
 
 
 def create__directory_table():
+    """
+    Creates the directory table.
+
+    Elements:
+    id_directory: Autoincrement, primary key
+    directory_path: Path of the directory
+
+    """
     connect = ConnectDB()
 
     sql = '''
@@ -17,6 +33,13 @@ def create__directory_table():
 
 
 def save_directory(directory):
+    """
+    Save a given directory path to the table and asigns an id.
+
+    Arguments:
+    directory: The direcotry path
+    """
+
     connect = ConnectDB()
 
     sql = f"""INSERT INTO music_directory (directory_path) VALUES ('{directory}')"""
@@ -26,6 +49,13 @@ def save_directory(directory):
 
 
 def check_existance():
+    """
+    Check if the table is not empty.
+
+    Values:
+    If is empty return False, if not return True
+    """
+
     connect = ConnectDB()
 
     sql = 'SELECT * FROM music_directory'
@@ -40,6 +70,10 @@ def check_existance():
 
 
 def get_directory():
+    """
+    Retrieves the first value in the directory table
+    """
+
     connect = ConnectDB()
 
     sql = 'SELECT (directory_path)  FROM music_directory'

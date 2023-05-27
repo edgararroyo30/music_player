@@ -1,7 +1,20 @@
+"""
+Table for the playlists names.
+Allow to add the playlist and add songs to the table for each playlist.
+"""
+
 from model.db_conection import ConnectDB
 
 
 def create_playlist_name_table():
+    """
+    Create the table that stores the playlist name.
+
+    Values:
+    id: primary key, autoincrement
+    playlist_name: Varchar (200)
+    """
+
     connect = ConnectDB()
 
     sql = '''
@@ -16,6 +29,13 @@ def create_playlist_name_table():
 
 
 def add_playlist_name(playlist_name):
+    """
+    Add a given playlist name to the table and asigns it an id.
+
+    Argument:
+    playlist_name -> Str
+    """
+
     connect = ConnectDB()
 
     sql = f'''
@@ -26,6 +46,15 @@ def add_playlist_name(playlist_name):
 
 
 def add_song_to_playlist(song_name, playlist_name):
+    """
+    Select the id related with the playlist name.
+    And stores that id in the songs_record table next to the song name.
+
+    Arguments:
+    song_name -> Str
+    playlist_name -> Str
+    """
+
     connect = ConnectDB()
 
     sql_id = f'''
@@ -33,7 +62,7 @@ def add_song_to_playlist(song_name, playlist_name):
     '''
     connect.cursor.execute(sql_id)
     playlist_id = connect.cursor.fetchone()
-    connect.close()
+
     playlist_id = str(playlist_id)
     playlist_id = playlist_id.strip("()")
     playlist_id = playlist_id.strip(",")

@@ -1,7 +1,22 @@
+"""
+Create tables that stores the songs that would be played next and back for the current playing song.
+The tables are updated everytime the user skip backwards or forward, 
+change the current playing song or the queue
+"""
+
 from model.db_conection import ConnectDB
 
 
 def song_existance(song):
+    """
+    Check if the song that is being given already exists in the table.
+    If the song exists return True.
+    If not return False.
+
+    Argument:
+    song -> Str
+    """
+
     connect = ConnectDB()
 
     sql = """SELECT song_name FROM songs_record"""
@@ -19,6 +34,14 @@ def song_existance(song):
 
 
 def create_playing_next_table():
+    """
+    Creates the table that stores the playin next songs.
+
+    Values:
+    id: primary key, autpincrement
+    song: song name
+    """
+
     connect = ConnectDB()
 
     sql = '''
@@ -33,6 +56,16 @@ def create_playing_next_table():
 
 
 def add_to_playing_next(play_back_song):
+    """
+    Add songs to the playing next table.
+
+    First empty the table if it has values.
+    Then insert the playing next song.
+
+    Argument:
+    Playing next songs -> List
+    """
+
     connect = ConnectDB()
 
     sql_existance = '''SELECT * FROM playing_next'''
@@ -56,9 +89,6 @@ def add_to_playing_next(play_back_song):
         sql_delete = '''DELETE FROM playing_next'''
         connect.cursor.execute(sql_delete)
 
-        sql_delete_back = '''DELETE FROM playing_back'''
-        connect.cursor.execute(sql_delete_back)
-
         for song in play_back_song:
             song = str(song)
             song = song.strip("()")
@@ -72,6 +102,15 @@ def add_to_playing_next(play_back_song):
 
 
 def play_next(curent_song):
+    """
+    Returns the first song on playing next table.
+    Then delete this song from the table.
+    Lastly send the current song to play back table.
+
+    Arguments:
+    current_song -> Str
+    """
+
     connect = ConnectDB()
 
     sql = '''SELECT song
@@ -94,12 +133,19 @@ def play_next(curent_song):
     connect.cursor.execute(sql_delete)
     connect.close()
 
-    add_to_playing_back(curent_song)
+    move_to_playing_back(curent_song)
 
     return playing_next_song
 
 
 def create_playing_back_table():
+    """
+    Creates the table that stores the playin back songs.
+
+    Values:
+    id: primary key, autpincrement
+    song: song name
+    """
     connect = ConnectDB()
 
     sql = '''
@@ -114,20 +160,60 @@ def create_playing_back_table():
 
 
 def add_to_playing_back(play_back_song):
+    """
+    Add songs to the playing back table.
+
+    First empty the table if it has values.
+    Then insert the playing back song.
+
+    Argument:
+    Playing back songs -> List
+    """
+
     connect = ConnectDB()
 
-    play_back_song = str(play_back_song)
-    play_back_song = play_back_song.strip("()")
-    play_back_song = play_back_song.strip(",")
-    play_back_song = play_back_song.strip("'")
-    play_back_song = play_back_song.strip()
+    sql_existance = '''SELECT * FROM playing_next'''
+    connect.cursor.execute(sql_existance)
+    exists = connect.cursor.fetchone()
 
-    sql = f'''INSERT INTO playing_back(song, id) VALUES ('{play_back_song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
-    connect.cursor.execute(sql)
-    connect.close()
+    if exists is None:
+        for song in play_back_song:
+            song = str(song)
+            song = song.strip("()")
+            song = song.strip(",")
+            song = song.strip("'")
+            song = song.strip()
+            sql = f'''INSERT INTO playing_back(song, id) VALUES ('{song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
+            connect.cursor.execute(sql)
+        connect.close()
+
+    else:
+
+        sql_delete_back = '''DELETE FROM playing_back'''
+        connect.cursor.execute(sql_delete_back)
+
+        for song in play_back_song:
+            song = str(song)
+            song = song.strip("()")
+            song = song.strip(",")
+            song = song.strip("'")
+            song = song.strip()
+            sql = f'''INSERT INTO playing_back(song, id) VALUES ('{song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
+            connect.cursor.execute(sql)
+        connect.close()
 
 
 def move_to_playing_next(play_back_song):
+    """
+    Moves the played back song to the play next table
+
+    ONLY FOR USE BETWEEN TABLES
+
+    Arguments:
+
+    Play_back_song -> Sr
+    """
+
     connect = ConnectDB()
 
     play_back_song = str(play_back_song)
@@ -141,7 +227,37 @@ def move_to_playing_next(play_back_song):
     connect.close()
 
 
+def move_to_playing_back(play_back_song):
+    """
+    Moves the played song to the play back table
+
+    ONLY FOR USE BETWEEN TABLES
+
+    Arguments:
+
+    Play_back_song -> Str
+    """
+
+    connect = ConnectDB()
+
+    play_back_song = str(play_back_song)
+    play_back_song = play_back_song.strip("()")
+    play_back_song = play_back_song.strip(",")
+    play_back_song = play_back_song.strip("'")
+    play_back_song = play_back_song.strip()
+
+    sql = f'''INSERT INTO playing_back(song, id) VALUES ('{play_back_song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
+    connect.cursor.execute(sql)
+    connect.close()
+
+
 def play_back():
+    """
+    Returns the first song on playing back table.
+    Then delete this song from the table.
+    Lastly send the current song to play next table.
+
+    """
     connect = ConnectDB()
 
     sql = '''SELECT song
