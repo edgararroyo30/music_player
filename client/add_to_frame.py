@@ -8,6 +8,9 @@ from client.play_bar import PlayBar
 from classes.music import Music
 from client.song_data import SongData
 import tkinter as tk
+from model.artists_db import get_artist_name
+from model.album_db import get_album_name
+from model.songs_record_db import get_artist_id, get_album_id
 
 
 class AddToFrame(ctk.CTkButton):
@@ -60,24 +63,39 @@ class AddToFrame(ctk.CTkButton):
         self.song_album_button.bind("<Button-3>", self.show_album_menu)
         self.song_name_button.bind("<Button-3>", self.show_song_menu)
 
-    def set_values(self, song_name, song_artist='Unknown', song_gender='Unknown', song_album='Unknown', song_duration='Unknown'):
+    def set_values(self, song_name, song_gender='Unknown', song_album='Unknown', song_duration='Unknown'):
         """
         Recieve the names for each label.
-        With that dta can infer the gender, album and artist
+        With that data can infer the gender, album and artist
         """
         self.song_name = song_name
 
         self.song_name_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                         text=song_name, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
-        self.song_artist_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                          text=song_artist, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        artist_name = get_artist_name(
+            get_artist_id(self.song_name.lower() + '.mp3'))
+
+        if artist_name == 'None':
+
+            self.song_artist_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                              text='Unknown', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        else:
+            self.song_artist_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                              text=artist_name, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
         self.song_gender_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                           text=song_gender, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
-        self.song_album_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
-                                         text=song_album, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        album_name = get_album_name(
+            get_album_id(self.song_name.lower() + '.mp3'))
+
+        if album_name == 'None' or album_name is None:
+            self.song_album_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                             text='Unknown', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
+        else:
+            self.song_album_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
+                                             text=album_name, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
 
         self.song_duration_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                             text=song_duration, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)

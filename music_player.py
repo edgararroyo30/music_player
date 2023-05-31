@@ -10,7 +10,6 @@ def main():
     """
     Create the main loop for the app interface
     """
-
     app = App()
     app.mainloop()
 

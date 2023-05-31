@@ -89,3 +89,15 @@ def get_directory():
     directory = directory[:-1]
 
     return directory
+
+
+def edit_directory(old_directory, new_directory):
+    """
+    Updates a directory
+    """
+    connect = ConnectDB()
+
+    sql = 'UPDATE music_directory SET directory_path = ? WHERE directory_path = ?'
+
+    connect.cursor.execute(sql, (new_directory, old_directory,))
+    connect.close()

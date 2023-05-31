@@ -5,6 +5,9 @@ Makes the info editable
 
 import customtkinter as ctk
 from client.frame_builder import FrameBuilder
+from model.songs_record_db import get_artist_id, get_album_id
+from model.album_db import get_album_name, asign_album
+from model.artists_db import get_artist_name, asign_artist
 
 
 class SongData(ctk.CTkToplevel):
@@ -50,13 +53,15 @@ class SongData(ctk.CTkToplevel):
             bg_color=self.main_color, text_color=self.text_color, height=5, border_width=1, fg_color=self.main_color)
         self.song_artist = ctk.CTkLabel(
             self.frame, text="Song artist", font=("Segoe UI", 15, "bold"))
+        self.artist_variable = ctk.StringVar()
         self.song_artist_entry = ctk.CTkEntry(
-            self.frame, font=("Segoe UI", 15), border_color="black", width=250,
+            self.frame, textvariable=self.artist_variable, font=("Segoe UI", 15), border_color="black", width=250,
             bg_color=self.main_color, text_color=self.text_color, height=5, border_width=1, fg_color=self.main_color)
         self.album_title = ctk.CTkLabel(
             self.frame, text="Album title", font=("Segoe UI", 15, "bold"))
+        self.album_variable = ctk.StringVar()
         self.album_title_entry = ctk.CTkEntry(
-            self.frame, font=("Segoe UI", 15), border_color="black", width=250,
+            self.frame, textvariable=self.album_variable, font=("Segoe UI", 15), border_color="black", width=250,
             bg_color=self.main_color, text_color=self.text_color, height=5, border_width=1, fg_color=self.main_color)
         self.album_artist = ctk.CTkLabel(
             self.frame, text="Album artist", font=("Segoe UI", 15, "bold"))
@@ -83,7 +88,8 @@ class SongData(ctk.CTkToplevel):
         self.save_button = ctk.CTkButton(self.frame, width=1, bg_color=self.main_color, hover_color=self.main_color,
                                          text=" Save ", text_color=self.text_color,
                                          font=("Segoe UI", 15, "bold"),  fg_color=self.main_color,
-                                         border_color="Black", border_width=1)
+                                         border_color="Black", border_width=1,
+                                         command=self.save)
 
         self.song_title_elements()
 
@@ -121,7 +127,14 @@ class SongData(ctk.CTkToplevel):
         self.song_artist.grid(column=0, row=0, pady=(10, 450), padx=(200, 10))
         self.song_artist_entry.grid(
             column=0, row=0, padx=(370, 10), pady=(10, 400))
-        self.song_artist_entry.insert(0, "Song artist here")
+        name = self.song_name + '.mp3'
+        if get_artist_id(name.lower()) is False:
+            self.song_artist_entry.insert(0, "Unknown")
+
+        else:
+            artist_name = get_artist_name(get_artist_id(name.lower()))
+
+            self.song_artist_entry.insert(0, artist_name)
 
     def album_title_elements(self):
         """
@@ -131,7 +144,13 @@ class SongData(ctk.CTkToplevel):
         self.album_title.grid(column=0, row=0, padx=(10, 535), pady=(10, 250))
         self.album_title_entry.grid(
             column=0, row=0, padx=(10, 370), pady=(10, 200))
-        self.album_title_entry.insert(0, "Album title here")
+        name = self.song_name + '.mp3'
+        if get_album_id(name.lower()) is False:
+            self.album_title_entry.insert(0, "Unknown")
+        else:
+            album_name = get_album_name(get_album_id(name.lower()))
+
+            self.album_title_entry.insert(0, album_name)
 
     def album_artist_elements(self):
         """
@@ -188,4 +207,23 @@ class SongData(ctk.CTkToplevel):
         """
         Closes the frame
         """
+        self.destroy()
+
+    def save(self):
+        """
+        Saves the maded changes
+        """
+        song = self.song_name + '.mp3'
+        artist_changes = self.artist_variable.get()
+        album_changes = self.album_variable.get()
+        if artist_changes == "Unknown":
+            pass
+        else:
+            asign_artist(song, artist_changes)
+
+        if album_changes == "Unknown":
+            pass
+        else:
+            asign_album(song, album_changes)
+
         self.destroy()

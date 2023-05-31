@@ -113,3 +113,37 @@ def get_song():
 
     list_songs = iterate_song(song_name)
     return list_songs
+
+
+def get_artist_id(song_name):
+    """
+    Return the artist id for a given song,
+    if theres not an artist id returns false
+    """
+    connect = ConnectDB()
+    sql = 'SELECT artist_id FROM songs_record WHERE song_name = ? '
+    connect.cursor.execute(sql, (song_name,))
+    artist_id = connect.cursor.fetchone()
+    connect.close()
+
+    if artist_id is None:
+        return False
+
+    return artist_id
+
+
+def get_album_id(song_name):
+    """
+    Return the album id for a given song,
+    if theres not an album id returns false
+    """
+    connect = ConnectDB()
+    sql = 'SELECT album_id FROM songs_record WHERE song_name = ? '
+    connect.cursor.execute(sql, (song_name,))
+    album_id = connect.cursor.fetchone()
+    connect.close()
+
+    if album_id is None:
+        return False
+
+    return album_id
