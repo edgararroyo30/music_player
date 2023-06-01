@@ -90,7 +90,7 @@ class AddToFrame(ctk.CTkButton):
         album_name = get_album_name(
             get_album_id(self.song_name.lower() + '.mp3'))
 
-        if album_name == 'None' or album_name is None:
+        if album_name == 'None' or album_name is None or album_name == '':
             self.song_album_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                              text='Unknown', text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
         else:
@@ -156,18 +156,30 @@ class AddToFrame(ctk.CTkButton):
         self.frame.grid(
             column=0, row=row, padx=(0, 0), pady=(0))
 
-        self.song_name_button.grid(
-            column=0, row=0, padx=padx, pady=(0))
-        self.song_artist_button.grid(
-            column=2, row=0, padx=(0, 0), pady=(0))
-        self.song_album_button.grid(
-            column=4, row=0, padx=(0, 0), pady=(0))
-        self.song_gender_button.grid(
-            column=6, row=0, padx=(0, 0), pady=(0))
-        self.song_duration_button.grid(
-            column=10, row=0, padx=(0, 0), pady=(0))
+        # Song Name column width
+        self.frame.columnconfigure(
+            0, weight=5, minsize=280)
+        self.frame.columnconfigure(
+            1, weight=1, minsize=185)  # Artist column width
+        self.frame.columnconfigure(
+            2, weight=1, minsize=190)  # Album column width
+        self.frame.columnconfigure(
+            3, weight=1, minsize=185)  # Genre column width
+        self.frame.columnconfigure(
+            4, weight=1, minsize=100)  # Duration column width
 
-        self.add_spaces()
+        self.song_name_button.grid(
+            column=0, row=0, padx=padx, pady=(0), sticky="w")
+        self.song_artist_button.grid(
+            column=1, row=0, padx=(0, 0), pady=(0), sticky="w")
+        self.song_album_button.grid(
+            column=2, row=0, padx=(0, 0), pady=(0), sticky="w")
+        self.song_gender_button.grid(
+            column=3, row=0, padx=(0, 0), pady=(0), sticky="w")
+        self.song_duration_button.grid(
+            column=4, row=0, padx=(0, 0), pady=(0), sticky="w")
+
+        # self.add_spaces()
 
     def get_song_name(self):
         """
