@@ -145,7 +145,7 @@ class SongData(ctk.CTkToplevel):
         self.album_title_entry.grid(
             column=0, row=0, padx=(10, 370), pady=(10, 200))
         name = self.song_name + '.mp3'
-        if get_album_id(name.lower()) is False:
+        if get_album_id(name.lower()) is False or get_album_id(name.lower()) is None or get_album_id(name.lower()) == "" or get_album_id(name.lower()) == "None":
             self.album_title_entry.insert(0, "Unknown")
         else:
             album_name = get_album_name(get_album_id(name.lower()))
