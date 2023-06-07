@@ -71,13 +71,21 @@ class Music():
         """
         global paused, current_song
         if not paused:
-            pygame.mixer.music.load(os.path.join(
-                get_directory(), current_song))
-            pygame.mixer.music.play()
+            if current_song == "None" or current_song is None or current_song == "none":
+                print("No song")
+
+            else:
+                pygame.mixer.music.load(os.path.join(
+                    get_directory(), current_song))
+                pygame.mixer.music.play()
 
         else:
-            pygame.mixer.music.unpause()
-            paused = False
+            if current_song == "None" or current_song is None or current_song == "none":
+                print("No song")
+
+            else:
+                pygame.mixer.music.unpause()
+                paused = False
 
     def pause_music(self):
         """
@@ -154,8 +162,14 @@ class Music():
         playing_next = apply_format.iterate(playing_next)
         playing_back = apply_format.iterate(playing_back)
 
-        add_to_playing_next(playing_next)
-        add_to_playing_back(playing_back)
+        if playing_next is None:
+            add_to_playing_next(None)
+            add_to_playing_back(playing_back)
+
+        else:
+
+            add_to_playing_next(playing_next)
+            add_to_playing_back(playing_back)
 
     def play_forward(self):
         """
@@ -163,16 +177,22 @@ class Music():
         """
         global paused, current_song
         if not paused:
-            pygame.mixer.music.load(os.path.join(
-                get_directory(), current_song))
-            pygame.mixer.music.play()
+            if current_song == "None" or current_song is None or current_song == "none":
+                print("No song")
+            else:
+                pygame.mixer.music.load(os.path.join(
+                    get_directory(), current_song))
+                pygame.mixer.music.play()
 
         else:
-            pygame.mixer.music.unpause()
-            pygame.mixer.music.load(os.path.join(
-                get_directory(), current_song))
-            pygame.mixer.music.play()
-            paused = False
+            if current_song == "None" or current_song is None or current_song == "none":
+                print("No song")
+            else:
+                pygame.mixer.music.unpause()
+                pygame.mixer.music.load(os.path.join(
+                    get_directory(), current_song))
+                pygame.mixer.music.play()
+                paused = False
 
     def play_backward(self):
         """
@@ -180,16 +200,22 @@ class Music():
         """
         global paused, current_song
         if not paused:
-            pygame.mixer.music.load(os.path.join(
-                get_directory(), current_song))
-            pygame.mixer.music.play()
+            if current_song == "None" or current_song is None or current_song == "none":
+                print("No song")
+            else:
+                pygame.mixer.music.load(os.path.join(
+                    get_directory(), current_song))
+                pygame.mixer.music.play()
 
         else:
-            pygame.mixer.music.unpause()
-            pygame.mixer.music.load(os.path.join(
-                get_directory(), current_song))
-            pygame.mixer.music.play()
-            paused = False
+            if current_song == "None" or current_song is None or current_song == "none":
+                print("No song")
+            else:
+                pygame.mixer.music.unpause()
+                pygame.mixer.music.load(os.path.join(
+                    get_directory(), current_song))
+                pygame.mixer.music.play()
+                paused = False
 
     def give_pause_state(self):
         """

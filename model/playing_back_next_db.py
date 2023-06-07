@@ -5,6 +5,7 @@ change the current playing song or the queue
 """
 
 from model.db_conection import ConnectDB
+import sqlite3
 
 
 def song_existance(song):
@@ -133,7 +134,15 @@ def play_next(curent_song):
     connect.cursor.execute(sql_delete)
     connect.close()
 
-    move_to_playing_back(curent_song)
+    if curent_song is None:
+        pass
+
+    else:
+        move_to_playing_back(curent_song)
+
+    if playing_next_song is None:
+        print("No song")
+        return None
 
     return playing_next_song
 
@@ -169,37 +178,41 @@ def add_to_playing_back(play_back_song):
     Argument:
     Playing back songs -> List
     """
+    try:
+        connect = ConnectDB()
 
-    connect = ConnectDB()
+        sql_existance = '''SELECT * FROM playing_next'''
+        connect.cursor.execute(sql_existance)
+        exists = connect.cursor.fetchone()
 
-    sql_existance = '''SELECT * FROM playing_next'''
-    connect.cursor.execute(sql_existance)
-    exists = connect.cursor.fetchone()
+        if exists is None:
+            for song in play_back_song:
+                song = str(song)
+                song = song.strip("()")
+                song = song.strip(",")
+                song = song.strip("'")
+                song = song.strip()
+                sql = f'''INSERT INTO playing_back(song, id) VALUES ('{song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
+                connect.cursor.execute(sql)
+            connect.close()
 
-    if exists is None:
-        for song in play_back_song:
-            song = str(song)
-            song = song.strip("()")
-            song = song.strip(",")
-            song = song.strip("'")
-            song = song.strip()
-            sql = f'''INSERT INTO playing_back(song, id) VALUES ('{song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
-            connect.cursor.execute(sql)
-        connect.close()
+        else:
 
-    else:
+            sql_delete_back = '''DELETE FROM playing_back'''
+            connect.cursor.execute(sql_delete_back)
 
-        sql_delete_back = '''DELETE FROM playing_back'''
-        connect.cursor.execute(sql_delete_back)
+            for song in play_back_song:
+                song = str(song)
+                song = song.strip("()")
+                song = song.strip(",")
+                song = song.strip("'")
+                song = song.strip()
+                sql = f'''INSERT INTO playing_back(song, id) VALUES ('{song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
+                connect.cursor.execute(sql)
+            connect.close()
 
-        for song in play_back_song:
-            song = str(song)
-            song = song.strip("()")
-            song = song.strip(",")
-            song = song.strip("'")
-            song = song.strip()
-            sql = f'''INSERT INTO playing_back(song, id) VALUES ('{song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
-            connect.cursor.execute(sql)
+    except sqlite3.IntegrityError as e:
+        print("UNIQUE constraint violation:", e)
         connect.close()
 
 
@@ -215,16 +228,19 @@ def move_to_playing_next(play_back_song):
     """
 
     connect = ConnectDB()
-
     play_back_song = str(play_back_song)
     play_back_song = play_back_song.strip("()")
     play_back_song = play_back_song.strip(",")
     play_back_song = play_back_song.strip("'")
     play_back_song = play_back_song.strip()
 
-    sql = f'''INSERT INTO playing_next(song) VALUES ('{play_back_song}')'''
-    connect.cursor.execute(sql)
-    connect.close()
+    try:
+        sql = f'''INSERT INTO playing_next(song) VALUES ('{play_back_song}')'''
+        connect.cursor.execute(sql)
+        connect.close()
+
+    except sqlite3.IntegrityError as e:
+        print("UNIQUE constraint violation:", e)
 
 
 def move_to_playing_back(play_back_song):
@@ -246,9 +262,15 @@ def move_to_playing_back(play_back_song):
     play_back_song = play_back_song.strip("'")
     play_back_song = play_back_song.strip()
 
-    sql = f'''INSERT INTO playing_back(song, id) VALUES ('{play_back_song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
-    connect.cursor.execute(sql)
-    connect.close()
+    try:
+
+        sql = f'''INSERT INTO playing_back(song, id) VALUES ('{play_back_song}', (SELECT COALESCE(MAX(id), 0) - 1 FROM playing_back))'''
+        connect.cursor.execute(sql)
+        connect.close()
+
+    except sqlite3.IntegrityError as e:
+        print("UNIQUE constraint violation:", e)
+        connect.close()
 
 
 def play_back():

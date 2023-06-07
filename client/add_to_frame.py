@@ -357,7 +357,6 @@ class AddToFrame(ctk.CTkButton):
 
         self.song_duration_button.configure(width=1, bg_color=self.main_color, hover_color=self.main_color,
                                             text=song_duration, text_color=self.text_color,  font=("Segoe UI", 15),  fg_color=self.main_color)
-        print("Data updated")
 
     def add_spaces(self):
         """
