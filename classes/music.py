@@ -176,9 +176,15 @@ class Music():
         Play current song
         """
         global paused, current_song
+        apply_format = FormatString()
+
         if not paused:
             if current_song == "None" or current_song is None or current_song == "none":
-                print("No song")
+
+                new_song = apply_format.format(self.restart_queue(), 4)
+                pygame.mixer.music.load(os.path.join(
+                    get_directory(), new_song))
+                pygame.mixer.music.play()
             else:
                 pygame.mixer.music.load(os.path.join(
                     get_directory(), current_song))
@@ -186,9 +192,12 @@ class Music():
 
         else:
             if current_song == "None" or current_song is None or current_song == "none":
-                print("No song")
+
+                new_song = apply_format.format(self.restart_queue(), 4)
+                pygame.mixer.music.load(os.path.join(
+                    get_directory(), new_song))
+                pygame.mixer.music.play()
             else:
-                pygame.mixer.music.unpause()
                 pygame.mixer.music.load(os.path.join(
                     get_directory(), current_song))
                 pygame.mixer.music.play()
@@ -225,3 +234,53 @@ class Music():
 
         global paused
         return paused
+
+    def restart_queue(self):
+        """
+        Restart the queue 
+        and upload to play_next and play_back tables
+        the songs that play next and back to each table
+        """
+        apply_format = FormatString()
+
+        get_id = apply_format.iterate(get_queue_songs_id())
+        new_song = get_id[0]
+        playing_next_id = []
+        playing_next = []
+
+        playing_back_id = []
+        playing_back = []
+
+        lista = apply_format.iterate(get_queue_songs_id())
+        song_id = new_song
+
+        for value in lista:
+            if value > song_id:
+                playing_next_id.append(value)
+
+        for value in playing_next_id:
+            song = get_playing_next_song(value)
+            playing_next.append(song)
+
+        for value in lista:
+            if value < song_id:
+                playing_back_id.append(value)
+
+        for value in playing_back_id:
+            song = get_playing_next_song(value)
+            playing_back.append(song)
+
+        playing_next = apply_format.iterate(playing_next)
+        playing_back = apply_format.iterate(playing_back)
+
+        new_song_name = get_playing_next_song(new_song)
+
+        if playing_next is None:
+            add_to_playing_next(None)
+            add_to_playing_back(playing_back)
+
+        else:
+
+            add_to_playing_next(playing_next)
+            add_to_playing_back(playing_back)
+            return new_song_name
